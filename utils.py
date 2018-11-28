@@ -61,9 +61,9 @@ def learn(data, alpha=0.1, verbose=False):
     print(sk.edges())
 
 
-def generateDataFromCSV(filename, size=-1, dim=-1):  # ,separator=';'):
+def generateDataFromCSV(filename, size=-1, dim=-1, separator=';'):
   with timer("Reading " + filename):
-    data = ot.Sample.ImportFromCSVFile(filename)  # ,separator=separator)
+    data = ot.Sample.ImportFromCSVFile(filename, separator)
     if size == -1:
       size = data.getSize()
     if dim == -1:
