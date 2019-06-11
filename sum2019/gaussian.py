@@ -1,3 +1,6 @@
+# doc
+# http://openturns.github.io/openturns/master/index.html
+# 
 import matplotlib.pyplot as plt
 import numpy as np
 
