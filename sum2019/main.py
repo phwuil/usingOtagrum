@@ -20,7 +20,7 @@ D = ot.Normal([0] * N, [1] * N, R).getSample(M)
 # Switch to rank space
 D_r = (D.rank()+1)/(D.getSize()+2)
 
-G, S = hc.hill_climbing(D_r)
+G, S = hc.hill_climbing(D_r,2)
 
 print("G: ", G)
 print("S: ", S)
