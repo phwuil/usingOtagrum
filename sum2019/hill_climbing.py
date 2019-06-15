@@ -15,16 +15,14 @@ def one_hill_climbing(D, gaussian_copula, G):
     
     while not converged:
         converged = True
-        for n in du.find_neighbor(G):
+        for n in du.find_neighbor(best_graph):
             score = sc.bic_score(D, gaussian_copula, n)
-            print("graph: ", n)
-            print("score: ", score)
+            # print("graph: ", n)
+            # print("score: ", score)
             if score > best_score:
                 best_score = score
                 best_graph = gum.DAG(n)
                 converged = False
-        if not converged:
-            G=best_graph
                        
     return best_graph, best_score
 
@@ -59,7 +57,7 @@ def hill_climbing(D, restart=1):
     
     for r in range(restart):
         if r != 0:
-            G = du.create_empty_dag()
+            G = du.create_random_dag()
         G, score = one_hill_climbing(D, gaussian_copula, G)
         if score > best_score:
             best_graph = G

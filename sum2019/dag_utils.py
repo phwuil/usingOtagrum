@@ -35,7 +35,5 @@ def create_empty_dag(N):
 def create_random_dag(N, step=50):
     dag = create_empty_dag(N)
     for i in range(step):
-        # TO DO: transform generator to list
-        dag = np.random.choice(find_neighbor(dag))
-        print(dag)
+        dag = np.random.choice(list(find_neighbor(dag)))
     return dag
