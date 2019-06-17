@@ -68,4 +68,4 @@ def hill_climbing(D, max_parents=4, restart=1):
             best_graph = G
             best_score = score
             
-    return best_graph, best_score
+    return gaussian_copula, best_graph, best_score
