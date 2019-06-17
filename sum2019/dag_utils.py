@@ -4,20 +4,24 @@
 import numpy as np
 import pyAgrum as gum
 
-def find_neighbor(G):
+def find_neighbor(G, max_parents=4):
     for i in G.nodes():
         for j in G.nodes():
             if i != j:
                 newdag = gum.DAG(G)
+                # If arcs (i,j) exists we delete it or we reverse it
                 if G.existsArc(i,j):
                     newdag.eraseArc(i,j)
                     yield newdag
-                    try:
-                        newdag.addArc(j,i)
-                    except gum.InvalidDirectedCycle:
-                        continue
-                    yield newdag
-                else:
+                    if len(G.parents(i)) < max_parents:
+                        try:
+                            newdag.addArc(j,i)
+                        except gum.InvalidDirectedCycle:
+                            continue
+                        yield newdag
+                # Else if it doesn't exist and this node doesn't have
+                # more parents thant max_parents, we add it
+                elif len(G.parents(j)) < max_parents:
                     try:
                         newdag.addArc(i,j)
                     except gum.InvalidDirectedCycle:
@@ -37,3 +41,18 @@ def create_random_dag(N, step=50):
     for i in range(step):
         dag = np.random.choice(list(find_neighbor(dag)))
     return dag
+
+def max_parents(dag):
+    max_nodes = []
+    max_num_par = 0
+    for node in dag.nodes():
+        num_par = len(dag.parents(node))
+        if max_num_par < num_par:
+            max_nodes = []
+            max_nodes.append(node)
+            max_num_par = num_par
+        elif max_num_par == num_par:
+            max_nodes.append(node)
+
+    return max_nodes, max_num_par
+        
