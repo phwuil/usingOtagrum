@@ -7,7 +7,7 @@ import pyAgrum as gum
 import score as sc
 import dag_utils as du
 
-def one_hill_climbing(D, gaussian_copula, G):
+def one_hill_climbing(D, gaussian_copula, G, max_parents):
     best_graph = G
     best_score = sc.bic_score(D, gaussian_copula, G)
 
@@ -18,7 +18,7 @@ def one_hill_climbing(D, gaussian_copula, G):
     
     while not converged:
         converged = True
-        for n in du.find_neighbor(best_graph):
+        for n in du.find_neighbor(best_graph, max_parents):
             if n not in tabu_list:
                 score = sc.bic_score(D, gaussian_copula, n)
                 # print("graph: ", n)
@@ -32,7 +32,7 @@ def one_hill_climbing(D, gaussian_copula, G):
 
 
 
-def hill_climbing(D, restart=1):
+def hill_climbing(D, max_parents=4, restart=1):
     N = D.getDimension()
 
     # Compute the estimate of the gaussian copula    
@@ -63,7 +63,7 @@ def hill_climbing(D, restart=1):
     for r in range(restart):
         if r != 0:
             G = du.create_random_dag(N)
-        G, score = one_hill_climbing(D, gaussian_copula, G)
+        G, score = one_hill_climbing(D, gaussian_copula, G, max_parents)
         if score > best_score:
             best_graph = G
             best_score = score
