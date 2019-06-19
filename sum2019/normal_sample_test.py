@@ -1,7 +1,7 @@
 import numpy as np
 import openturns as ot
 import hill_climbing as hc
-#import otagrum as otagr
+import otagrum as otagr
 
 ot.RandomGenerator.SetSeed(42)
 np.random.seed(42)
