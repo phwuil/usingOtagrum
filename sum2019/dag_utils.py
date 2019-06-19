@@ -36,10 +36,12 @@ def create_empty_dag(N):
     return dag
 
 
-def create_random_dag(N, step=50):
+def create_random_dag(N, max_parents=4, step=50):
     dag = create_empty_dag(N)
     for i in range(step):
-        dag = np.random.choice(list(find_neighbor(dag)))
+        neighbors = list(find_neighbor(dag, max_parents))
+        if neighbors:
+            dag = np.random.choice(neighbors)
     return dag
 
 def max_parents(dag):

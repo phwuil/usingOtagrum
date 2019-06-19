@@ -34,7 +34,6 @@ def one_hill_climbing(D, gaussian_copula, G, max_parents):
 
 def hill_climbing(D, max_parents=4, restart=1):
     N = D.getDimension()
-
     # Compute the estimate of the gaussian copula    
     kendall_tau = D.computeKendallTau()
     pearson_r = ot.CorrelationMatrix(np.sin((np.pi/2)*kendall_tau))
@@ -62,7 +61,7 @@ def hill_climbing(D, max_parents=4, restart=1):
     
     for r in range(restart):
         if r != 0:
-            G = du.create_random_dag(N)
+            G = du.create_random_dag(N, max_parents)
         G, score = one_hill_climbing(D, gaussian_copula, G, max_parents)
         if score > best_score:
             best_graph = G
