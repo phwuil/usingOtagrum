@@ -21,7 +21,7 @@ red_wine = (red_wine.rank()+1)/(red_wine.getSize()+2)
 red_wine = np.array(red_wine)
 
 k = 10
-n_restart = 2
+n_restart = 1
 stop_max_parents = 4
 
 
@@ -48,10 +48,10 @@ Loglikelihoods = np.array(Loglikelihoods, dtype=float)
 ll_mean = Loglikelihoods.mean(axis=1, keepdims=True)
 ll_std = Loglikelihoods.std(axis=1, keepdims=True)
 
-n_max_parents = np.arange(stop_max_parents).reshape(stop_max_parents,1)
+n_max_parents = np.arange(stop_max_parents+1).reshape(stop_max_parents+1,1)
 results = np.concatenate((n_max_parents, ll_mean, ll_std), axis=1)
 
 header = "k=" + str(k) + ", " + "restarts=" + str(n_restart)
 title = "elidan_"  + data_set_name + "_k" + str(k) + "r" + str(n_restart)
 
-np.savetxt("elidan_", results, delimiter=',', header=header)
+np.savetxt(title, results, delimiter=',', header=header)
