@@ -21,8 +21,8 @@ red_wine = (red_wine.rank()+1)/(red_wine.getSize()+2)
 red_wine = np.array(red_wine)
 
 k = 10
-n_restart = 5
-stop_max_parents = 4
+n_restart = 1
+stop_max_parents = 10
 
 
 kf = KFold(n_splits=k, shuffle=True)
@@ -52,6 +52,7 @@ n_max_parents = np.arange(stop_max_parents+1).reshape(stop_max_parents+1,1)
 results = np.concatenate((n_max_parents, ll_mean, ll_std), axis=1)
 
 header = "k=" + str(k) + ", " + "restarts=" + str(n_restart)
-title = "elidan_"  + data_set_name + "_k" + str(k) + "r" + str(n_restart) + ".csv"
+title = "elidan_"  + data_set_name + "_k" + str(k) + "r" + str(n_restart) + \
+        "mp" + str(stop_max_parents) + ".csv"
 
 np.savetxt(title, results, fmt="%f", delimiter=',', header=header)
