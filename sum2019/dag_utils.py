@@ -57,4 +57,5 @@ def max_parents(dag):
             max_nodes.append(node)
 
     return max_nodes, max_num_par
-        
+
+    
