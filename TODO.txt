@@ -1,0 +1,8 @@
+1- JunctionTreeBernsteinCopula::getSample
+
+```
+jtbcsample=jtbc.getSample(1000)
+jtbcsample.setDescription(bn.names())
+```
+Why do we need to set the description again ? getSample should do that.
+
