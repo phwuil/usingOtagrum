@@ -47,18 +47,22 @@ def learn(data, alpha=0.1, verbose=False):
     learn.setVerbosity(verbose)
     learn.setOptimalPolicy(True)
   with timer("Learning skeleton"):
-    sk = learn.getSkeleton()
+    sk = learn.inferSkeleton()
   print("Nodes : {} , Edges : {}".format(sk.size(), sk.sizeEdges()))
   if sk.size() < 40:
     gnb.showDot(learn.skeletonToDot(sk), size="20", format="png")
   else:
     print(sk.edges())
   with timer("Learning VStructures"):
-    mg = learn.getPDAG(sk)
+    mg = learn.inferPDAG(sk)
   if mg.size() < 40:
     gnb.showDot(mg.toDot(), size="20", format="png")
   else:
     print(sk.edges())
+    
+  with timer("Learning complete DAG"):
+      dag=learn.learnDAG()
+  return dag  
 
 
 def generateDataFromCSV(filename, size=-1, dim=-1, separator=';'):
