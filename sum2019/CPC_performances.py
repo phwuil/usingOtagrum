@@ -20,13 +20,17 @@ with open(Tstruct_file_path, 'r') as file:
 Tstruct = gum.fastBN(arcs)
 
 data = np.loadtxt(data_set_path, delimiter=',', skiprows=1)
-data = ot.Sample(data)
-
-alpha = 0.9
+sizes = np.linspace(1000, len(data), 10, dtype=int)
+alpha = 0.1
 binNumber = 3
+list_g = []
 
-learner = otagr.ContinuousPC(data, binNumber, alpha)
-g2 = learner.learnDAG()
+for size in sizes:
+    print(size)
+    sample = data[np.random.randint(0,len(data), size=size)]
+    sample = ot.Sample(sample)  
+    learner = otagr.ContinuousPC(sample, binNumber, alpha)
+    list_g.append(learner.learnDAG())
 
 #bn = gum.BayesNet()
 #for name in Tstruct.names():
