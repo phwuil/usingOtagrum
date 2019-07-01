@@ -1,12 +1,12 @@
 import numpy as np
 import openturns as ot
 import hill_climbing as hc
-import otagrum as otagr
+from scipy.stats import random_correlation
 
 ot.RandomGenerator.SetSeed(42)
 np.random.seed(42)
 
-M = 100 # Size of the dataset
+M = 10000 # Size of the dataset
 N = 4  # Dimension of the random vector
 
 # Correlation matrix definition
