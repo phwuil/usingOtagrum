@@ -11,7 +11,7 @@ mpl.rc('text', usetex=True)
 mpl.rc('font', family='serif')
 
 fig_path = "fig"
-data_set_path = "data/winequality/elidan_winequality-red_k10r1mp10.csv"
+data_set_path = "data/winequality/elidan_winequality-red_k10r2mp4s22.csv"
 data_set_name = data_set_path.split('/')[-1].split('.')[0]
 
 data = np.loadtxt(data_set_path, delimiter=',').transpose()
@@ -36,5 +36,5 @@ lower = data[1] + data[2]
 
 ax.plot(data[0].astype(int), data[1])
 
-ax.fill_between(data[0], lower, upper, alpha=0.4)
+#ax.fill_between(data[0], lower, upper, alpha=0.4)
 plt.savefig(os.path.join(fig_path, data_set_name+".pdf"), transparent=True)
