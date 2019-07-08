@@ -11,7 +11,7 @@ mpl.rc('text', usetex=True)
 mpl.rc('font', family='serif')
 
 fig_path = "fig"
-data_set_path = "data/winequality/elidan_winequality-red_k10r2mp4s22.csv"
+data_set_path = "data/sample_regis/elidan_sample_k10r2mp4s50.csv"
 data_set_name = data_set_path.split('/')[-1].split('.')[0]
 
 data = np.loadtxt(data_set_path, delimiter=',').transpose()

@@ -19,13 +19,13 @@ computeLogLikelihood = True
 max_parents = 4
 n_restart = 2
 k = 10
-n_samples = 22
+n_samples = 50
 
-data_set_path = "data/winequality/winequality-red.csv"
+data_set_path = "data/sample_regis/sample.csv"
 
 data_set_name = data_set_path.split('/')[-1].split('.')[0]
 
-data = np.loadtxt(data_set_path, delimiter=';', skiprows=1)
+data = np.loadtxt(data_set_path, delimiter=',', skiprows=1)
 
 if computeScores:
     
@@ -50,7 +50,7 @@ if computeScores:
 
 
 if computeLogLikelihood:
-    sizes = np.linspace(len(data)/n_samples, len(data), n_samples, dtype=int)
+    sizes = np.linspace(20, 500, n_samples, dtype=int)
     Loglikelihoods = []
     Structures = []
     for size in sizes:
