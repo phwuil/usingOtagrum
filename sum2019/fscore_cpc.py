@@ -21,10 +21,10 @@ def named_dag_to_bn(ndag, names):
 
 binNumber = 4
 alpha = 0.1
-n_samples = 50
-n_restart = 10
+n_samples = 20
+n_restart = 20
 start_size = 10
-end_size = 50000
+end_size = 20000
 
 # Loading of data and true structure
 data_set = "data/sample_regis/sample.csv"
@@ -69,6 +69,7 @@ for l in list_structures:
         bn = named_dag_to_bn(s, Tstruct.names())
         comparison = GraphicalBNComparator(Tstruct, bn)
         scores = comparison.scores()
+        #print(scores)
         list_precision.append(scores['precision'])
         list_recall.append(scores['recall'])
         list_fscore.append(scores['fscore'])

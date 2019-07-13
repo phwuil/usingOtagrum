@@ -19,19 +19,19 @@ def dag_to_bn(dag, names):
 
 max_parents = 4  # Maximum number of parents
 n_restart_hc = 3 # Number of restart for the hill climbing
-n_samples = 60   # Number of points calculated
-n_restart = 10   # Number of restart for each point
+n_samples = 50   # Number of points calculated
+n_restart = 20    # Number of restart for each point
 start_size = 10
-end_size = 10000
+end_size = 1500
 
 # Loading data and true structure
-data_set = "data/sample_regis/sample.csv"
+data_set = "data/cbn1/gbn1.csv"
 data_set_path = '/'.join(data_set.split('/')[:-1])
 data_set_name = data_set.split('/')[-1].split('.')[0]
 
-data = np.loadtxt(data_set, delimiter=',', skiprows=1)
+data = np.loadtxt(data_set, delimiter=';', skiprows=1)
 
-Tstruct_file_path = "data/sample_regis/struct.txt"
+Tstruct_file_path = "data/cbn1/struct.txt"
 Tstruct_file_name = Tstruct_file_path.split('/')[-1].split('.')[0]
 
 with open(Tstruct_file_path, 'r') as file:
