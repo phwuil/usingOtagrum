@@ -113,5 +113,5 @@ venv.bak/
 # mypy
 .mypy_cache/
 
-# ignore alarm
-flairs2020/data/gaussian/alarm/
+# ignore data directory
+flairs2020/data/
