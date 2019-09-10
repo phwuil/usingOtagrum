@@ -113,5 +113,5 @@ venv.bak/
 # mypy
 .mypy_cache/
 
-# ignore sample
-*sample*.csv
+# ignore alarm
+flairs2020/data/gaussian/alarm/
