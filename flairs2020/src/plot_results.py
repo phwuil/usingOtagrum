@@ -5,7 +5,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 
 import numpy as np
-import os.path
+import os.path as path
 
 def plot_error(x, mean, std, alpha=0.4, ax=None):
     x, mean, std = x.flatten(), mean.flatten(), std.flatten()
@@ -19,22 +19,23 @@ mpl.rc('text', usetex=True)
 mpl.rc('font', family='serif')
 
 plot_precision = True
-plot_recall = True
-plot_fscore = True
+plot_recall = False
+plot_fscore = False
 
 # Loading of data and true structure
-data_directory = "data/gaussian/"
-fig_directory = "fig/"
+directory = "gaussian/struct_1/r05/"
+res_directory = path.join("../results", directory)
+fig_directory = path.join("../fig", directory)
 
-data_file = "fscore_cpc_gaussian_copula_sample_2_r20spms5alpha5s30f10e30000.csv"
-data_file_name = data_file.split('.')[0]
+res_file = "fscore_cpc_gaussian_sample_01_r20spms5alpha5s30f10e10000.csv"
+res_file_name = res_file.split('.')[0]
 
-data = np.loadtxt(data_directory + data_file, delimiter=',').transpose()
+res = np.loadtxt(res_directory + res_file, delimiter=',').transpose()
 
-sizes = data[0].astype(int)
-mean_precision, std_precision = data[1], data[4]
-mean_recall, std_recall = data[2], data[5]
-mean_fscore, std_fscore = data[3], data[6]
+sizes = res[0].astype(int)
+mean_precision, std_precision = res[1], res[4]
+mean_recall, std_recall = res[2], res[5]
+mean_fscore, std_fscore = res[3], res[6]
 
 
 fig, ax = plt.subplots()
@@ -53,13 +54,13 @@ ax.set_ylabel('')
 #ax.legend(frameon=False, loc='upper left',ncol=2,handlelength=4)
 
 if plot_precision:
-    ax.plot(sizes, data[1], label='precision')
+    ax.plot(sizes, res[1], label='precision')
     plot_error(sizes, mean_precision, std_precision, ax=ax)
 if plot_recall:
-    ax.plot(sizes, data[2], label='recall')
+    ax.plot(sizes, res[2], label='recall')
     plot_error(sizes, mean_recall, std_recall, ax=ax) 
 if plot_fscore:
-    ax.plot(sizes, data[3],label='fscore')
+    ax.plot(sizes, res[3],label='fscore')
     plot_error(sizes, mean_fscore, std_fscore, ax=ax)
 
 ax.legend()
