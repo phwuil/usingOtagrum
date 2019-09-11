@@ -8,6 +8,7 @@ import openturns as ot
 import otagrum as otagr
 import matplotlib.pyplot as plt
 import itertools as it
+import os.path as path
 
 def plot_pvalues(sizes, pvalues, save=False, scale=0.1):
     x = [e for e in sizes for i in range(len(pvalues[0]))] 
@@ -43,23 +44,26 @@ def load_struct(file):
 
 binNumber = 5
 alpha = 0.05
-n_samples = 30
+n_samples = 10
 n_restart = 20
 start_size = 10
-end_size = 100000
+end_size = 10000
 
 # Loading of data and true structure
-data_directory = "data/gaussian/alarm/r08/"
-struct_directory = "data/gaussian/alarm/"
+directory = "gaussian/struct_1/r05/"
+data_directory = path.join("../data/", directory)
+struct_directory = path.join(data_directory, "..")
+res_directory = path.join("../results/", directory)
+fig_directory = path.join("../figures/", directory)
 
-data_file = "alarm_gaussian_sample_01.csv"
+data_file = "gaussian_sample_01.csv"
 data_file_name = data_file.split('.')[0]
 
-Tstruct_file = "alarm.txt"
+Tstruct_file = "struct_1.txt"
 Tstruct_file_name = Tstruct_file.split('.')[0]
 
 data = np.loadtxt(data_directory + data_file, delimiter=',', skiprows=1)
-Tstruct = load_struct(struct_directory + Tstruct_file)
+Tstruct = load_struct(path.join(struct_directory, Tstruct_file))
 
 sizes = np.linspace(start_size, end_size, n_samples, dtype=int)
 list_structures = []
@@ -125,7 +129,7 @@ title = "fscore_cpc_"  + data_file_name + "_" + "r" + str(n_restart) + \
         "spms" + str(binNumber) + "alpha" + str(int(100*alpha)) + \
         "s" + str(n_samples) + "f" + str(start_size) + "e" + str(end_size)
 
-np.savetxt(data_directory + title + ".csv",
+np.savetxt(res_directory + title + ".csv",
            results, fmt="%f", delimiter=',', header=header)
 
 alpha_t = 0.1
@@ -139,5 +143,5 @@ plt.plot(sizes, mean_fscore, label='fscore')
 
 
 plt.legend()
-plt.savefig(data_directory + title + ".pdf", transparent=True)
+plt.savefig(fig_directory + title + ".pdf", transparent=True)
 plt.show()
