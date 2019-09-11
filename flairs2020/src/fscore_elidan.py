@@ -7,6 +7,7 @@ from pyAgrum.lib.bn_vs_bn import GraphicalBNComparator
 import openturns as ot
 import hill_climbing as hc
 import matplotlib.pyplot as plt
+import os.path as path
 
 def dag_to_bn(dag, names):
     # DAG to BN
@@ -29,22 +30,26 @@ def plot_error(x, mean, std, alpha=0.4):
 
 max_parents = 4  # Maximum number of parents
 n_restart_hc = 3 # Number of restart for the hill climbing
-n_samples = 30   # Number of points calculated
+n_samples = 10   # Number of points calculated
 n_restart = 20    # Number of restart for each point
 start_size = 100
-end_size = 30000
+end_size = 10000
 
 # Loading of data and true structure
-directory = "data/gaussian/"
+directory = "gaussian/struct_1/r05/"
+data_directory = path.join("../data/", directory)
+struct_directory = path.join(data_directory, "..")
+res_directory = path.join("../results/", directory)
+fig_directory = path.join("../figures/", directory)
 
-data_file = "gaussian_copula_sample_2.csv"
+data_file = "gaussian_sample_01.csv"
 data_file_name = data_file.split('.')[0]
 
-Tstruct_file = "struct_2.txt"
+Tstruct_file = "struct_1.txt"
 Tstruct_file_name = Tstruct_file.split('.')[0]
 
-data = np.loadtxt(directory + data_file, delimiter=',', skiprows=1)
-Tstruct = load_struct(directory + Tstruct_file)
+data = np.loadtxt(data_directory + data_file, delimiter=',', skiprows=1)
+Tstruct = load_struct(path.join(struct_directory, Tstruct_file))
 
 
 # Computing scores
@@ -103,7 +108,7 @@ title = "fscore_elidan_"  + data_file_name + "_" + "r" + str(n_restart) + \
         "mp" + str(max_parents) + "s" + str(n_samples) + "f" + str(start_size) + \
         "e" + str(end_size)
 
-np.savetxt(directory + title + ".csv",
+np.savetxt(res_directory + title + ".csv",
            results, fmt="%f", delimiter=',', header=header)
  
 alpha_t = 0.1
@@ -116,5 +121,5 @@ plot_error(sizes, mean_fscore, std_fscore, alpha_t)
 plt.plot(sizes, mean_fscore, label='fscore')
 
 plt.legend()
-plt.savefig(directory + title + ".pdf", transparent=True)
+plt.savefig(fig_directory + title + ".pdf", transparent=True)
 plt.show()
