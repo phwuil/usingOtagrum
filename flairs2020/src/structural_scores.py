@@ -10,6 +10,7 @@ import hill_climbing as hc
 import matplotlib.pyplot as plt
 import itertools as it
 import os.path as path
+import os
 
 def plot_pvalues(sizes, pvalues, save=False, scale=0.1):
     x = [e for e in sizes for i in range(len(pvalues[0]))] 
@@ -151,13 +152,13 @@ end_size = 5000              # Right bound of the curve
 
 
 # Setting directories location and files
-directory = "gaussian/struct_1/r05/"
-data_directory = path.join("../data/", directory)
-struct_directory = path.join(data_directory, "..")
+directory = "gaussian/struct_1/r03/"
+data_directory = path.join("../data/samples/", directory)
+struct_directory = "../data/structures/"
 res_directory = path.join("../results/", directory)
 fig_directory = path.join("../figures/", directory)
 
-data_file = "gaussian_sample_01.csv"
+data_file = "struct1_gaussian_sample_01.csv"
 data_file_name = data_file.split('.')[0]
 
 Tstruct_file = "struct_1.txt"
@@ -172,7 +173,7 @@ sizes = np.linspace(start_size, end_size, n_samples, dtype=int)
 
 # Learning structures on one dataset
 list_structures, list_pvalues = struct_from_one_dataset(data,
-                                                        method="elidan",
+                                                        method="cpc",
                                                         start=start_size,
                                                         end=end_size,
                                                         num=n_samples,
@@ -199,6 +200,9 @@ title = "fscore_cpc_"  + data_file_name + "_" + "r" + str(n_restart) + \
         "spms" + str(binNumber) + "alpha" + str(int(100*alpha)) + \
         "s" + str(n_samples) + "f" + str(start_size) + "e" + str(end_size)
 
+if not path.isdir(res_directory):
+    os.mkdir(res_directory)
+    
 np.savetxt(res_directory + title + ".csv",
            results, fmt="%f", delimiter=',', header=header)
 
@@ -213,5 +217,9 @@ plt.plot(sizes, mean_fscore, label='fscore')
 
 
 plt.legend()
+
+if not path.isdir(fig_directory):
+    os.mkdir(fig_directory)
+    
 plt.savefig(fig_directory + title + ".pdf", transparent=True)
 plt.show()

@@ -38,23 +38,24 @@ def write_struct(file, bn):
 # Parameters
 n_sample = 20
 size = 100000
-r = 0.3
+r = 0.4
 
 # Setting directories location and files
 directory = "gaussian/"
 
-data_directory = path.join("../data/", directory)
+data_directory = path.join("../data/samples/", directory)
 data_file_name = "struct1_gaussian_sample"
 
 Tstruct_file = "struct_1.txt"
 Tstruct_file_name = Tstruct_file.split('.')[0]
-struct_directory = path.join(data_directory, Tstruct_file_name)
+struct_directory = "../data/structures/"
 
-if not path.isdir(struct_directory):
-    os.mkdir(struct_directory)
+data_directory = path.join(data_directory, Tstruct_file_name)
+if not path.isdir(data_directory):
+    os.mkdir(data_directory)
 
 r_subdir = 'r' + str(r).replace('.', '')
-data_directory = path.join(struct_directory, r_subdir)
+data_directory = path.join(data_directory, r_subdir)
 if not path.isdir(data_directory):
     os.mkdir(data_directory)
 
