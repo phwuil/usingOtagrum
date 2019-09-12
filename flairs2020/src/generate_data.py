@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import numpy as np
 import os.path as path
 import os
 import pyAgrum as gum
@@ -39,23 +38,31 @@ def write_struct(file, bn):
 # Parameters
 n_sample = 20
 size = 100000
-r = 0.8
+r = 0.3
 
-# Loading of data and true structure
-directory = "data/gaussian/alarm/"
-data_file_name = "alarm_gaussian_sample"
+# Setting directories location and files
+directory = "gaussian/"
 
-Tstruct_file = "alarm.txt"
+data_directory = path.join("../data/", directory)
+data_file_name = "struct1_gaussian_sample"
+
+Tstruct_file = "struct_1.txt"
 Tstruct_file_name = Tstruct_file.split('.')[0]
+struct_directory = path.join(data_directory, Tstruct_file_name)
 
-Tstruct = load_struct(path.join(directory, Tstruct_file))
-ndag=otagr.NamedDAG(Tstruct)
+if not path.isdir(struct_directory):
+    os.mkdir(struct_directory)
 
 r_subdir = 'r' + str(r).replace('.', '')
-if not path.isdir(path.join(directory, r_subdir)):
-    os.mkdir(path.join(directory, r_subdir))
-    
+data_directory = path.join(struct_directory, r_subdir)
+if not path.isdir(data_directory):
+    os.mkdir(data_directory)
+
+Tstruct = load_struct(path.join(struct_directory, Tstruct_file))
+#Tstruct = gum.fastBN()
+ndag=otagr.NamedDAG(Tstruct)
+
 for i in range(n_sample):
     sample = generate_gaussian_data(ndag, size)
-    sample.exportToCSVFile(path.join(directory, r_subdir, data_file_name) + \
+    sample.exportToCSVFile(path.join(data_directory, data_file_name) + \
                            '_' + str(i+1).zfill(2) + ".csv", ',')
