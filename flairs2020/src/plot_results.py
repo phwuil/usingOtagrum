@@ -23,11 +23,11 @@ plot_recall = False
 plot_fscore = False
 
 # Loading of data and true structure
-directory = "gaussian/struct_1/r05/"
+directory = "gaussian/struct_1/r03/"
 res_directory = path.join("../results", directory)
-fig_directory = path.join("../fig", directory)
+fig_directory = path.join("../figures", directory)
 
-res_file = "fscore_cpc_gaussian_sample_01_r20spms5alpha5s30f10e10000.csv"
+res_file = "scores_cpc_struct1_gaussian_sample_01_f100t5000s5r10mcss5alpha5.csv"
 res_file_name = res_file.split('.')[0]
 
 res = np.loadtxt(res_directory + res_file, delimiter=',').transpose()
@@ -53,16 +53,17 @@ ax.set_ylabel('')
 #plt.ylabel(nameOfPlot,rotation=0)
 #ax.legend(frameon=False, loc='upper left',ncol=2,handlelength=4)
 
+alpha_t = 0.4
 if plot_precision:
     ax.plot(sizes, res[1], label='precision')
-    plot_error(sizes, mean_precision, std_precision, ax=ax)
+    plot_error(sizes, mean_precision, std_precision, alpha_t, ax=ax)
 if plot_recall:
     ax.plot(sizes, res[2], label='recall')
-    plot_error(sizes, mean_recall, std_recall, ax=ax) 
+    plot_error(sizes, mean_recall, std_recall, alpha_t, ax=ax) 
 if plot_fscore:
     ax.plot(sizes, res[3],label='fscore')
-    plot_error(sizes, mean_fscore, std_fscore, ax=ax)
+    plot_error(sizes, mean_fscore, std_fscore, alpha_t, ax=ax)
 
 ax.legend()
-#plt.savefig(os.path.join(fig_directory, data_file_name+".pdf"), transparent=True)
+plt.savefig(path.join(fig_directory, res_file_name + ".pdf"), transparent=True)
 plt.show()

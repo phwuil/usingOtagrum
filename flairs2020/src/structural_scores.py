@@ -135,6 +135,8 @@ def compute_stds(scores):
     std_fscore = np.std(fscore, axis=1).reshape((n_samples,1))
     return std_precision, std_recall, std_fscore
 
+# Which method is tested ("cpc" or "elidan")
+method = "cpc"
 
 # Continuous PC parameters
 binNumber = 5                 # max size of conditional set
@@ -173,7 +175,7 @@ sizes = np.linspace(start_size, end_size, n_samples, dtype=int)
 
 # Learning structures on one dataset
 list_structures, list_pvalues = struct_from_one_dataset(data,
-                                                        method="cpc",
+                                                        method=method,
                                                         start=start_size,
                                                         end=end_size,
                                                         num=n_samples,
@@ -196,30 +198,36 @@ results = np.concatenate((sizes, mean_precision, mean_recall, mean_fscore,
 
 header = "Size, Precision_mean, Recall_mean, Fscore_mean, " + \
          "Precision_std, Recall_std, Fscore_std"
-title = "fscore_cpc_"  + data_file_name + "_" + "r" + str(n_restart) + \
-        "spms" + str(binNumber) + "alpha" + str(int(100*alpha)) + \
-        "s" + str(n_samples) + "f" + str(start_size) + "e" + str(end_size)
 
+if method == "cpc":
+    title = "scores_cpc_" + data_file_name + "_" + "f" + str(start_size) + \
+            "t" + str(end_size) + "s" + str(n_samples) + "r" + str(n_restart) + \
+            "mcss" + str(binNumber) + "alpha" + str(int(100*alpha))
+            
+elif method == "elidan":
+    title = "scores_elidan_" + data_file_name + "_" + "f" + str(start_size) + \
+            "t" + str(end_size) + "s" + str(n_samples) + "r" + str(n_restart) + \
+            "mp" + str(max_parents) + "hcr" + str(n_restart_hc) 
+else:
+    print("Wrong entry for method argument")
+    
+    
 if not path.isdir(res_directory):
     os.mkdir(res_directory)
     
 np.savetxt(res_directory + title + ".csv",
            results, fmt="%f", delimiter=',', header=header)
-
-alpha_t = 0.1
-#plot_error(sizes, mean_precision, std_precision, alpha_t)
-#plot_error(sizes, mean_recall, std_recall, alpha_t)
-plot_error(sizes, mean_fscore, std_fscore, alpha_t)
-
-#plt.plot(sizes, mean_precision, label='precision')
-#plt.plot(sizes, mean_recall, label='recall')
-plt.plot(sizes, mean_fscore, label='fscore')
-
-
-plt.legend()
-
-if not path.isdir(fig_directory):
-    os.mkdir(fig_directory)
-    
-plt.savefig(fig_directory + title + ".pdf", transparent=True)
-plt.show()
+#
+#alpha_t = 0.1
+#
+#plot_error(sizes, mean_fscore, std_fscore, alpha_t)
+#plt.plot(sizes, mean_fscore, label='fscore')
+#
+#
+#plt.legend()
+#
+#if not path.isdir(fig_directory):
+#    os.mkdir(fig_directory)
+#    
+#plt.savefig(fig_directory + title + ".pdf", transparent=True)
+#plt.show()
