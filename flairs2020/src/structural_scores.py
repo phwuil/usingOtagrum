@@ -217,17 +217,3 @@ if not path.isdir(res_directory):
     
 np.savetxt(res_directory + title + ".csv",
            results, fmt="%f", delimiter=',', header=header)
-#
-#alpha_t = 0.1
-#
-#plot_error(sizes, mean_fscore, std_fscore, alpha_t)
-#plt.plot(sizes, mean_fscore, label='fscore')
-#
-#
-#plt.legend()
-#
-#if not path.isdir(fig_directory):
-#    os.mkdir(fig_directory)
-#    
-#plt.savefig(fig_directory + title + ".pdf", transparent=True)
-#plt.show()
