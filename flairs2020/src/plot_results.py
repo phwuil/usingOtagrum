@@ -27,7 +27,7 @@ directory = "gaussian/struct_1/r03/"
 res_directory = path.join("../results", directory)
 fig_directory = path.join("../figures", directory)
 
-res_file = "scores_cpc_struct1_gaussian_sample_01_f100t5000s5r10mcss5alpha5.csv"
+res_file = "scores_cpc_struct1_gaussian_sample_01_f10t15000s30r20mcss5alpha5.csv"
 res_file_name = res_file.split('.')[0]
 
 res = np.loadtxt(res_directory + res_file, delimiter=',').transpose()

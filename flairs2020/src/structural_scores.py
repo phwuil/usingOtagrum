@@ -147,23 +147,23 @@ max_parents = 4               # Maximum number of parents
 n_restart_hc = 3              # Number of restart for the hill climbing
 
 # Learning parameters
-n_samples = 5                # Number of points of the curve
-n_restart = 10                # Number of restart for each point
-start_size = 100               # Left bound of the curve
-end_size = 5000              # Right bound of the curve
+n_samples = 30                # Number of points of the curve
+n_restart = 20                # Number of restart for each point
+start_size = 10               # Left bound of the curve
+end_size = 15000              # Right bound of the curve
 
 
 # Setting directories location and files
-directory = "gaussian/struct_1/r03/"
+directory = "gaussian/asia/r08/"
 data_directory = path.join("../data/samples/", directory)
 struct_directory = "../data/structures/"
 res_directory = path.join("../results/", directory)
 fig_directory = path.join("../figures/", directory)
 
-data_file = "struct1_gaussian_sample_01.csv"
+data_file = "asia_gaussian_sample_01.csv"
 data_file_name = data_file.split('.')[0]
 
-Tstruct_file = "struct_1.txt"
+Tstruct_file = "asia.txt"
 Tstruct_file_name = Tstruct_file.split('.')[0]
 
 # Loading data and structure
