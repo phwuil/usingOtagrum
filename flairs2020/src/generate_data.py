@@ -18,7 +18,35 @@ def generate_gaussian_data(ndag, size, r=0.8):
                 R[i, j] = r
         jointDistributions.append(ot.Normal([0.0]*d, [1.0]*d, R).getCopula())
     copula = otagr.ContinuousBayesianNetwork(ndag, jointDistributions)
-    sample = copula.getSample(100000)
+    sample = copula.getSample(size)
+    return sample
+
+def generate_student_data(ndag, size, r=0.8):
+    order=ndag.getTopologicalOrder()
+    jointDistributions=[]
+    for i in range(order.getSize()):
+        d = 1 + ndag.getParents(i).getSize()
+        R = ot.CorrelationMatrix(d)
+        for i in range(d):
+            for j in range(i):
+                R[i, j] = r
+        jointDistributions.append(ot.Student(5.0, [0.0]*d, [1.0]*d, R).getCopula())
+    copula = otagr.ContinuousBayesianNetwork(ndag, jointDistributions)
+    sample = copula.getSample(size)
+    return sample
+
+def generate_dirichlet_data(ndag, size):
+    order=ndag.getTopologicalOrder()
+    jointDistributions=[]
+    for i in range(order.getSize()):
+        d = 1 + ndag.getParents(i).getSize()
+        R = ot.CorrelationMatrix(d)
+        for i in range(d):
+            for j in range(i):
+                R[i, j] = r
+        jointDistributions.append(ot.Dirichlet([(1.0+k)/(d+1) for k in range(d+1)]).getCopula())
+    copula = otagr.ContinuousBayesianNetwork(ndag, jointDistributions)
+    sample = copula.getSample(size)
     return sample
 
 def load_struct(file):
@@ -38,26 +66,27 @@ def write_struct(file, bn):
 # Parameters
 n_sample = 20
 size = 100000
-r = 0.4
+r = 0.8
 
 # Setting directories location and files
-directory = "gaussian/"
+distribution = "gaussian"
+structure = "asia"
+ 
+data_directory = path.join("../data/samples/", distribution)
+data_file_name = structure + "_" + distribution + "_sample"
 
-data_directory = path.join("../data/samples/", directory)
-data_file_name = "struct1_gaussian_sample"
-
-Tstruct_file = "struct_1.txt"
-Tstruct_file_name = Tstruct_file.split('.')[0]
+Tstruct_file = structure + ".txt"
 struct_directory = "../data/structures/"
 
-data_directory = path.join(data_directory, Tstruct_file_name)
+data_directory = path.join(data_directory, structure)
 if not path.isdir(data_directory):
     os.mkdir(data_directory)
 
-r_subdir = 'r' + str(r).replace('.', '')
-data_directory = path.join(data_directory, r_subdir)
-if not path.isdir(data_directory):
-    os.mkdir(data_directory)
+if distribution == "gaussian" or distribution == "student":
+    r_subdir = 'r' + str(r).replace('.', '')
+    data_directory = path.join(data_directory, r_subdir)
+    if not path.isdir(data_directory):
+        os.mkdir(data_directory)
 
 Tstruct = load_struct(path.join(struct_directory, Tstruct_file))
 #Tstruct = gum.fastBN()
