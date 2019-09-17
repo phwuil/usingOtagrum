@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 
 import numpy as np
 import os.path as path
+import os
 
 def plot_error(x, mean, std, alpha=0.4, ax=None):
     x, mean, std = x.flatten(), mean.flatten(), std.flatten()
@@ -23,11 +24,17 @@ plot_recall = False
 plot_fscore = False
 
 # Loading of data and true structure
-directory = "gaussian/struct_1/r03/"
+directory = "gaussian/struct1/r08/"
 res_directory = path.join("../results", directory)
-fig_directory = path.join("../figures", directory)
 
-res_file = "scores_cpc_struct1_gaussian_sample_01_f10t15000s30r20mcss5alpha5.csv"
+fig_directory = "../figures/"
+for d in directory.split('/'):
+    if d:
+        fig_directory = path.join(fig_directory, d)
+        if not path.isdir(fig_directory):
+            os.mkdir(fig_directory)
+
+res_file = "scores_unique_elidan_struct1_gaussian_sample_01_f100t15000s3r20mp4hcr10.csv"
 res_file_name = res_file.split('.')[0]
 
 res = np.loadtxt(res_directory + res_file, delimiter=',').transpose()

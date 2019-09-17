@@ -36,6 +36,7 @@ def hill_climbing(D, max_parents=4, restart=1):
     N = D.getDimension()
     # Compute the estimate of the gaussian copula    
     kendall_tau = D.computeKendallTau()
+    #print(kendall_tau)
     pearson_r = ot.CorrelationMatrix(np.sin((np.pi/2)*kendall_tau))
     
     # Create the gaussian copula with parameters pearson_r

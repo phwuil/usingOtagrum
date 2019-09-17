@@ -70,7 +70,7 @@ r = 0.8
 
 # Setting directories location and files
 distribution = "gaussian"
-structure = "asia"
+structure = "struct1"
  
 data_directory = path.join("../data/samples/", distribution)
 data_file_name = structure + "_" + distribution + "_sample"
