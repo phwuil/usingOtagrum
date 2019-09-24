@@ -66,11 +66,11 @@ def write_struct(file, bn):
 # Parameters
 n_sample = 20
 size = 100000
-r = 0.8
+r = 0.3
 
 # Setting directories location and files
-distribution = "gaussian"
-structure = "struct1"
+distribution = "student"
+structure = "alarm"
  
 data_directory = path.join("../data/samples/", distribution)
 data_file_name = structure + "_" + distribution + "_sample"
@@ -93,6 +93,13 @@ Tstruct = load_struct(path.join(struct_directory, Tstruct_file))
 ndag=otagr.NamedDAG(Tstruct)
 
 for i in range(n_sample):
-    sample = generate_gaussian_data(ndag, size)
+    if distribution == "gaussian":
+        sample = generate_gaussian_data(ndag, size, r)
+    elif distribution == "student":
+        sample = generate_student_data(ndag, size, r)
+    elif distribution == "dirichlet":
+        sample = generate_dirichlet_data(ndag, size)
+    else:
+        print("Wrong entry for the distribution !")
     sample.exportToCSVFile(path.join(data_directory, data_file_name) + \
                            '_' + str(i+1).zfill(2) + ".csv", ',')
