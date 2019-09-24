@@ -107,7 +107,7 @@ def struct_from_one_dataset(data_file, method="cpc", start=10, end=1e4, num=10, 
 
 
 
-def struct_from_multiple_dataset(directory, method="cpc", start=10, end=1e4, num=10):
+def struct_from_multiple_dataset(directory, method="cpc", start=10, end=1e4, num=10, restart=1):
     # Looking for which size we learn
     sizes = np.linspace(start, end, num, dtype=int)
     
@@ -115,6 +115,7 @@ def struct_from_multiple_dataset(directory, method="cpc", start=10, end=1e4, num
     files_in_directory = [f for f in os.listdir(directory) \
                           if path.isfile(path.join(directory, f))]
     files_in_directory.sort()
+    files_in_directory = files_in_directory[:restart]
     list_structures = []
     for f in files_in_directory:
         print("Processing file", f)
@@ -178,9 +179,9 @@ def compute_stds(scores):
     return std_precision, std_recall, std_fscore
 
 # Which method is tested ("cpc" or "elidan")
-method = "elidan"
+method = "cpc"
 # Setting test mode
-mode = "unique"
+mode = "multi"
 # Distribution model
 distribution = "student"
 # Structure
@@ -195,8 +196,8 @@ max_parents = 4               # Maximum number of parents
 n_restart_hc = 4             # Number of restart for the hill climbing
 
 # Learning parameters
-n_samples = 30                # Number of points of the curve
-n_restart = 20                # Number of restart for each point
+n_samples = 8                # Number of points of the curve
+n_restart = 5                # Number of restart for each point
 start_size = 1000              # Left bound of the curve
 end_size = 30000              # Right bound of the curve
 
@@ -241,7 +242,8 @@ elif mode == "multi":
      list_structures = struct_from_multiple_dataset(data_directory, method=method,
                                                     start=start_size,
                                                     end=end_size,
-                                                    num=n_samples)
+                                                    num=n_samples, 
+                                                    restart=n_restart)
 else:
     print("This mode doesn't exist !")
     
