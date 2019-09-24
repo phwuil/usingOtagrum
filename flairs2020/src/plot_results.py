@@ -24,7 +24,7 @@ plot_recall = False
 plot_fscore = False
 
 # Loading of data and true structure
-directory = "gaussian/struct1/r08/"
+directory = "student/asia/r08/"
 res_directory = path.join("../results", directory)
 
 fig_directory = "../figures/"
@@ -34,7 +34,7 @@ for d in directory.split('/'):
         if not path.isdir(fig_directory):
             os.mkdir(fig_directory)
 
-res_file = "scores_unique_elidan_struct1_gaussian_sample_01_f100t15000s3r20mp4hcr10.csv"
+res_file = "scores_unique_elidan_asia_student_sample_01_f1000t30000s30r20mp4hcr4.csv"
 res_file_name = res_file.split('.')[0]
 
 res = np.loadtxt(res_directory + res_file, delimiter=',').transpose()

@@ -87,7 +87,10 @@ def struct_from_one_dataset(data_file, method="cpc", start=10, end=1e4, num=10, 
         #pvalues = []
         for i in range(restart):
             #print("restart : ", i+1)
-            sample = data[np.random.randint(0, len(data), size=size)]
+            #sample = data[np.random.randint(0, len(data), size=size)]
+            sample = data[np.random.choice(np.arange(0, len(data)),
+                                           size=size,
+                                           replace=False)]
             sample = ot.Sample(sample)
             sample.setDescription(Tstruct.names())
         
@@ -177,9 +180,9 @@ def compute_stds(scores):
 # Which method is tested ("cpc" or "elidan")
 method = "elidan"
 # Setting test mode
-mode = "multi"
+mode = "unique"
 # Distribution model
-distribution = "gaussian"
+distribution = "student"
 # Structure
 structure = "asia"
 
@@ -189,13 +192,13 @@ alpha = 0.05                  # Confidence threshold
 
 # Elidan's learning parameters
 max_parents = 4               # Maximum number of parents
-n_restart_hc = 10             # Number of restart for the hill climbing
+n_restart_hc = 4             # Number of restart for the hill climbing
 
 # Learning parameters
-n_samples = 15                # Number of points of the curve
+n_samples = 30                # Number of points of the curve
 n_restart = 20                # Number of restart for each point
 start_size = 1000              # Left bound of the curve
-end_size = 15000              # Right bound of the curve
+end_size = 30000              # Right bound of the curve
 
 
 # Setting directories location and files
