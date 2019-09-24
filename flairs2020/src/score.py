@@ -5,13 +5,13 @@ import openturns as ot
 import numpy as np
 
 def local_log_likelihood(D, gaussian_copula):
+    if gaussian_copula.getDimension()==2:
+        return gaussian_copula.computeLogPDF(D).computeMean()[0] * D.getSize()
     parents_indices = [i for i in range(1, D.getDimension())]
     margin = gaussian_copula.getMarginal(parents_indices)
-    
-    log_numerator = gaussian_copula.computeLogPDF(D)
-    log_denominator = margin.computeLogPDF(ot.Sample(np.array(D)[:, parents_indices]))
-    
-    return np.sum(log_numerator, axis=0) - np.sum(log_denominator, axis=0)
+    log_numerator = gaussian_copula.computeLogPDF(D).computeMean()[0]
+    log_denominator = margin.computeLogPDF(D.getMarginal(parents_indices)).computeMean()[0]
+    return D.getSize() * (log_numerator - log_denominator)
 
 
 def log_likelihood(D, gaussian_copula, G):
@@ -20,7 +20,7 @@ def log_likelihood(D, gaussian_copula, G):
         if G.parents(i) != set():
             indices = list(G.parents(i))
             indices = [i] + indices
-            ll += local_log_likelihood(ot.Sample(np.array(D)[:, indices]),
+            ll += local_log_likelihood(D.getMarginal(indices),
                                        gaussian_copula.getMarginal(indices))
     return ll
 
