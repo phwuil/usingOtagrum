@@ -3,75 +3,19 @@
 
 import os.path as path
 import os
-import pyAgrum as gum
-import openturns as ot
+import utils as ut
 import otagrum as otagr
-
-def generate_gaussian_data(ndag, size, r=0.8):
-    order=ndag.getTopologicalOrder()
-    jointDistributions=[]
-    for i in range(order.getSize()):
-        d = 1 + ndag.getParents(i).getSize()
-        R = ot.CorrelationMatrix(d)
-        for i in range(d):
-            for j in range(i):
-                R[i, j] = r
-        jointDistributions.append(ot.Normal([0.0]*d, [1.0]*d, R).getCopula())
-    copula = otagr.ContinuousBayesianNetwork(ndag, jointDistributions)
-    sample = copula.getSample(size)
-    return sample
-
-def generate_student_data(ndag, size, r=0.8):
-    order=ndag.getTopologicalOrder()
-    jointDistributions=[]
-    for i in range(order.getSize()):
-        d = 1 + ndag.getParents(i).getSize()
-        R = ot.CorrelationMatrix(d)
-        for i in range(d):
-            for j in range(i):
-                R[i, j] = r
-        jointDistributions.append(ot.Student(5.0, [0.0]*d, [1.0]*d, R).getCopula())
-    copula = otagr.ContinuousBayesianNetwork(ndag, jointDistributions)
-    sample = copula.getSample(size)
-    return sample
-
-def generate_dirichlet_data(ndag, size):
-    order=ndag.getTopologicalOrder()
-    jointDistributions=[]
-    for i in range(order.getSize()):
-        d = 1 + ndag.getParents(i).getSize()
-        R = ot.CorrelationMatrix(d)
-        for i in range(d):
-            for j in range(i):
-                R[i, j] = r
-        jointDistributions.append(ot.Dirichlet([(1.0+k)/(d+1) for k in range(d+1)]).getCopula())
-    copula = otagr.ContinuousBayesianNetwork(ndag, jointDistributions)
-    sample = copula.getSample(size)
-    return sample
-
-def load_struct(file):
-    with open(file, 'r') as f:
-        arcs = f.read().replace('\n', '')
-    return gum.fastBN(arcs)
-
-def write_struct(file, bn):
-    struct_str = ''
-    names = bn.names()
-    for (head,tail) in bn.arcs():
-        struct_str += names[head] + "->" + names[tail] + ';'
-    with open(file, 'w') as f:
-        print(struct_str, file=f)
         
 
 # Parameters
-n_sample = 20
+n_sample = 10
 size = 100000
-r = 0.3
+r = 0.10
 
 # Setting directories location and files
-distribution = "student"
-structure = "alarm"
- 
+distribution = "gaussian"
+structure = "vStruct"
+
 data_directory = path.join("../data/samples/", distribution)
 data_file_name = structure + "_" + distribution + "_sample"
 
@@ -88,17 +32,17 @@ if distribution == "gaussian" or distribution == "student":
     if not path.isdir(data_directory):
         os.mkdir(data_directory)
 
-Tstruct = load_struct(path.join(struct_directory, Tstruct_file))
+Tstruct = ut.load_struct(path.join(struct_directory, Tstruct_file))
 #Tstruct = gum.fastBN()
 ndag=otagr.NamedDAG(Tstruct)
 
 for i in range(n_sample):
     if distribution == "gaussian":
-        sample = generate_gaussian_data(ndag, size, r)
+        sample = ut.generate_gaussian_data(ndag, size, r)
     elif distribution == "student":
-        sample = generate_student_data(ndag, size, r)
+        sample = ut.generate_student_data(ndag, size, r)
     elif distribution == "dirichlet":
-        sample = generate_dirichlet_data(ndag, size)
+        sample = ut.generate_dirichlet_data(ndag, size)
     else:
         print("Wrong entry for the distribution !")
     sample.exportToCSVFile(path.join(data_directory, data_file_name) + \

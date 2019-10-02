@@ -7,25 +7,42 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os.path as path
 import os
+import re
 
-def plot_error(x, mean, std, alpha=0.4, ax=None):
-    x, mean, std = x.flatten(), mean.flatten(), std.flatten()
-    lower, upper = mean-std, mean+std
-    if ax:
-        ax.fill_between(x, lower, upper, alpha=alpha)
-    else:
-        plt.fill_between(x, lower, upper, alpha=alpha)
+import utils as ut
+
+import argparse
+
+CLI = argparse.ArgumentParser()
+CLI.add_argument("--method")
+CLI.add_argument("--mode")
+CLI.add_argument("--distribution")
+CLI.add_argument("--structure")
+CLI.add_argument("--from_size")
+CLI.add_argument("--to_size")
+CLI.add_argument("--n_sample")
+CLI.add_argument("--n_restart")
+CLI.add_argument("--correlation")
+CLI.add_argument("--parameters", nargs='+', type=float)
+
+args = CLI.parse_args()
+
+if args.correlation:
+    correlation = 'r' + args.correlation.replace('.', '')
+else:
+    correlation = ''
 
 mpl.rc('text', usetex=True)  
 mpl.rc('font', family='serif')
 
 plot_precision = True
-plot_recall = False
-plot_fscore = False
+plot_recall = True
+plot_fscore = True
 
 # Loading of data and true structure
-directory = "student/asia/r08/"
-res_directory = path.join("../results", directory)
+#directory = "gaussian/asia/r08/"
+directory = path.join(args.distribution, args.structure, correlation)
+res_directory = path.join("../results/", directory)
 
 fig_directory = "../figures/"
 for d in directory.split('/'):
@@ -34,10 +51,37 @@ for d in directory.split('/'):
         if not path.isdir(fig_directory):
             os.mkdir(fig_directory)
 
-res_file = "scores_unique_elidan_asia_student_sample_01_f1000t30000s30r20mp4hcr4.csv"
-res_file_name = res_file.split('.')[0]
+if args.method == "cpc":
+    res_file_name = '_'.join(["scores",
+                         args.mode,
+                         args.method,
+                         args.structure,
+                         args.distribution,
+                         ''.join(['f', args.from_size,
+                                  't', args.to_size,
+                                  's', args.n_sample,
+                                  'r', args.n_restart,
+                                  'mcss', str(int(args.parameters[0])),
+                                  'alpha', str(int(100*args.parameters[1]))])])
+elif args.method == "elidan":
+    res_file_name = '_'.join(["scores",
+                         args.mode,
+                         args.method,
+                         args.structure,
+                         args.distribution,
+                         ''.join(['f', args.from_size,
+                                  't', args.to_size,
+                                  's', args.n_sample,
+                                  'r', args.n_restart,
+                                  'mp', str(int(args.parameters[0])),
+                                  'hcr', str(int(args.parameters[1]))])])
+else:
+    print("Wrong entry for method !")
+    
+#res_file = "scores_multi_cpc_asia_gaussian_f1000t30000s8r1mcss5alpha5.csv"
+res_file = res_file_name + '.csv'
 
-res = np.loadtxt(res_directory + res_file, delimiter=',').transpose()
+res = np.loadtxt(path.join(res_directory, res_file), delimiter=',').transpose()
 
 sizes = res[0].astype(int)
 mean_precision, std_precision = res[1], res[4]
@@ -45,11 +89,30 @@ mean_recall, std_recall = res[2], res[5]
 mean_fscore, std_fscore = res[3], res[6]
 
 
+curve, mode, method, structure, distribution, parameters = res_file_name.split('_')
+parameters = re.findall(r"\d+", parameters)
+
+if method == "cpc":
+    from_size, to_size, n_sample, n_restart, max_condset, alpha = parameters
+    fig_title = curve.capitalize() + " for " + method + " on " + distribution \
+                  + " data " + "generated from " + structure + " network\n" \
+                  + "Mode: " + mode + ", Restarts: " + n_restart \
+                  + ", Alpha: " + str(int(alpha)/100) \
+                  + ", MaxCondSet: " + max_condset
+elif method == "elidan":
+    from_size, to_size, n_sample, n_restart, max_parents, hc_restart = parameters
+    fig_title = curve.capitalize() + " for " + method + " on " + distribution \
+                  + " data " + "generated from " + structure + " network\n" \
+                  + "Mode: " + mode + ", Restarts: " + n_restart \
+                  + ", HCRestarts: " + hc_restart \
+                  + ", MaxParents: " + max_parents
+
 fig, ax = plt.subplots()
 
 ax.set_xlabel('')
 ax.set_ylabel('')
 
+ax.set_title(fig_title)
 #ax.yaxis.set_major_formatter(ScalarFormatter())
 #ax.yaxis.major.formatter._useMathText = True
 #ax.yaxis.set_minor_locator(  AutoMinorLocator(5))
@@ -63,14 +126,15 @@ ax.set_ylabel('')
 alpha_t = 0.4
 if plot_precision:
     ax.plot(sizes, res[1], label='precision')
-    plot_error(sizes, mean_precision, std_precision, alpha_t, ax=ax)
+    ut.plot_error(sizes, mean_precision, std_precision, alpha_t, ax=ax)
 if plot_recall:
     ax.plot(sizes, res[2], label='recall')
-    plot_error(sizes, mean_recall, std_recall, alpha_t, ax=ax) 
+    ut.plot_error(sizes, mean_recall, std_recall, alpha_t, ax=ax) 
 if plot_fscore:
     ax.plot(sizes, res[3],label='fscore')
-    plot_error(sizes, mean_fscore, std_fscore, alpha_t, ax=ax)
+    ut.plot_error(sizes, mean_fscore, std_fscore, alpha_t, ax=ax)
 
 ax.legend()
 plt.savefig(path.join(fig_directory, res_file_name + ".pdf"), transparent=True)
-plt.show()
+print("Saving figure in ", path.join(fig_directory, res_file_name + ".pdf"))
+#plt.show()
