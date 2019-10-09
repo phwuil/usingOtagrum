@@ -114,4 +114,4 @@ venv.bak/
 .mypy_cache/
 
 # ignore data directory
-flairs2020/data/
+flairs2020/data/samples
