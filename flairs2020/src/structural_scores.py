@@ -23,7 +23,7 @@ CLI.add_argument("--correlation")
 
 args = CLI.parse_args()
 
-if args.correlation:
+if (args.distribution == "gaussian" or args.distribution == "student") and args.correlation:
     correlation = 'r' + args.correlation.replace('.', '')
 else:
     correlation = ''
