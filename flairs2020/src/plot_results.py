@@ -112,6 +112,9 @@ fig, ax = plt.subplots()
 ax.set_xlabel('')
 ax.set_ylabel('')
 
+#ax.set_xlim([1000, 30000])
+#ax.set_ylim(0,1)
+
 ax.set_title(fig_title)
 #ax.yaxis.set_major_formatter(ScalarFormatter())
 #ax.yaxis.major.formatter._useMathText = True
