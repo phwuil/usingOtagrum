@@ -16,7 +16,7 @@ mpl.rc('font', family='serif')
 
 # Loading of data and true structure
 directory = "gaussian/asia/r08/loglikelihood/"
-res_file = "elidan_asia_gaussian_sample_01_k10r2mp4s5.csv"
+res_file = "loglikelihood_kfold_elidan_trueAsia_gaussian_f1000t30000s10r5mcss5alpha5.csv"
 res_directory = path.join("../results/", directory)
 
 fig_directory = "../figures/"
@@ -40,7 +40,9 @@ mean_ll, std_ll = res[1], res[2]
 #                  + "Mode: " + mode + ", Restarts: " + n_restart \
 #                  + ", Alpha: " + str(int(alpha)/100) \
 #                  + ", MaxCondSet: " + max_condset
-fig_title = "Gaussian"
+
+fig_title = "Mean log-likelihood with true structure for elidan on gaussian data generated from asia network\n" + \
+            "Mode: kfold, Restarts: 5, MaxCondSet: 5, Alpha: 0.05"
 
 fig, ax = plt.subplots()
 
@@ -50,6 +52,9 @@ ax.set_ylabel('10-fold train log-probability / instance')
 ax.set_title(fig_title)
 
 alpha_t = 0.4
+
+ax.set_xlim([1000, 30000])
+ax.set_ylim(0.,3.)
 
 ax.plot(sizes, mean_ll)
 ut.plot_error(sizes, mean_ll, std_ll, alpha_t, ax=ax)

@@ -41,7 +41,7 @@ plot_fscore = True
 
 # Loading of data and true structure
 #directory = "gaussian/asia/r08/"
-directory = path.join(args.distribution, args.structure, correlation)
+directory = path.join(args.distribution, args.structure, correlation, "scores")
 res_directory = path.join("../results/", directory)
 
 fig_directory = "../figures/"

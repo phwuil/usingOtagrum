@@ -7,7 +7,7 @@ DATA_DIR_PREFIX="../data"
 RES_DIR_PREFIX="../results"
 FIG_DIR_PREFIX="../figures"
 
-#compute="both"
+compute="all"
 distribution="gaussian"
 correlation="0.8"
 structure="asia"
@@ -26,6 +26,8 @@ alpha=0.05  # Confidence level for continuous PC
 
 mp=4        # Maximum parent in Elidan learning
 hcr=4       # Number of restart for the hill climbing in Elidan
+
+parameters=
 
 #data_exist=false
 #results_exist=false
@@ -48,6 +50,9 @@ while [ "$1" != "" ]; do
         -S | --structure )
             shift
             structure=$1;;
+        -M | --method )
+            shift
+            method=$1;;
         --compute )
             shift
             compute=$1;;
@@ -68,10 +73,17 @@ STRUCT_DIR="$DATA_DIR_PREFIX/structures"
 RES_DIR="$RES_DIR_PREFIX/$DIR_SUFFIX"
 FIG_DIR="$FIG_DIR_PREFIX/$DIR_SUFFIX"
 
-FILE_NAME="scores_${mode}_${method}_${structure}_${distribution}"
+FILE_NAME="${mode}_${method}_${structure}_${distribution}"
 FILE_NAME="${FILE_NAME}_f${from_size}t${to_size}s${n_sample}r${n_restart}" 
-FILE_NAME="${FILE_NAME}mcss5alpha5"
+if [ "$method" = "cpc" ]; then
+    FILE_NAME="${FILE_NAME}mcss${mcss}alpha$(awk '{print 100*$1}' <<< "${alpha}")"
+    parameters="$mcss $alpha"
+elif [ "$method" = "elidan" ]; then
+    FILE_NAME="${FILE_NAME}mp${mp}hcr${hcr}"
+    parameters="$mp $hcr"
+fi
 
+# Checking if structure text file exist
 if [ -f "$STRUCT_DIR/$structure.txt" ]; then
     echo "The file $structure.txt exists."
 else
@@ -82,57 +94,113 @@ fi
 if [ -d "$DATA_DIR" ]; then
     if [ $(ls -1 | wc -l) -lt $n_restart ]; then
         response=
-        echo "There is less file than wanted number of restarts. Generate more files? (y/n) > "
+        echo "There is less file than wanted number of restarts."
+        echo "Generate more files? (y/n) > "
         read response
         if [ "$response" != "y" ]; then
             echo "Exiting program."
             exit 1
         fi
-        python generate_data.py --distribution=$distribution --structure=$structure \
-                                --n_sample=$n_restart --sample_size=$sample_size \
+        python generate_data.py --distribution=$distribution \
+                                --structure=$structure \
+                                --n_sample=$n_restart \
+                                --sample_size=$sample_size \
                                 --correlation=$correlation
     fi
 else
     echo "No corresponding data have been found. Generating some..."
-    python generate_data.py --distribution=$distribution --structure=$structure \
-                            --n_sample=$n_restart --sample_size=$sample_size \
+    python generate_data.py --distribution=$distribution \
+                            --structure=$structure \
+                            --n_sample=$n_restart \
+                            --sample_size=$sample_size \
                             --correlation=$correlation
 fi
 
-if [ -f "$RES_DIR/$FILE_NAME.csv" ]; then
-    echo "Result file exists."
-else
-    echo "Result file does'nt exist."
-    echo "Doing scientific stuff to generate one..."
-    python structural_scores.py --method=$method \
-                                --distribution=$distribution \
-                                --correlation=$correlation \
-                                --structure=$structure \
-                                --mode=multi \
-                                --parameters 5 0.05 \
-                                --from_size=$from_size \
-                                --to_size=$to_size \
-                                --n_sample=$n_sample \
-                                --n_restart=$n_restart
+#####################################################################################
+#                          Compute scores and loglikelihood results                 #
+#####################################################################################
+
+if [ "$compute" = "scores" ] || [ "$compute" = "all" ]; then
+    if [ -f "$RES_DIR/scores/scores_$FILE_NAME.csv" ]; then
+        echo "Result file for scores exists."
+    else
+        echo "Result file for scores does'nt exist."
+        echo "Doing scientific stuff to generate one..."
+        python structural_scores.py --method=$method \
+                                    --distribution=$distribution \
+                                    --correlation=$correlation \
+                                    --structure=$structure \
+                                    --mode=multi \
+                                    --parameters $parameters \
+                                    --from_size=$from_size \
+                                    --to_size=$to_size \
+                                    --n_sample=$n_sample \
+                                    --n_restart=$n_restart
+    fi
+fi
+
+if [ "$compute" = "loglikelihood" ] || [ "$compute" = "all" ]; then
+    if [ -f "$RES_DIR/loglikelihood/loglikelihood_$FILE_NAME.csv" ]; then
+        echo "Result file for loglikelihood exists."
+    else
+        echo "Result file for loglikelihood doesn't exist."
+        echo "Doing scientific stuff to generate one..."
+        python loglikelihood_performances.py --method=$method \
+                                             --distribution=$distribution \
+                                             --correlation=$correlation \
+                                             --structure=$structure \
+                                             --mode=multi \
+                                             --parameters $parameters \
+                                             --from_size=$from_size \
+                                             --to_size=$to_size \
+                                             --n_sample=$n_sample \
+                                             --n_restart=$n_restart
+    fi
 fi
 
 
-if [ -f "$FIG_DIR/$FILE_NAME.pdf" ]; then
-    echo "Figure file exists."
-else
-    echo "Figure file does'nt exist."
-    echo "Doing scientific stuff to generate one..."
-    python plot_results.py --method=$method \
-                           --distribution=$distribution \
-                           --correlation=$correlation \
-                           --structure=$structure \
-                           --mode=multi \
-                           --parameters 5 0.05 \
-                           --from_size=$from_size \
-                           --to_size=$to_size \
-                           --n_sample=$n_sample \
-                           --n_restart=$n_restart
+#####################################################################################
+#                                  Plot figures                                     #
+#####################################################################################
+
+if [ "$compute" = "scores" ] || [ "$compute" = "all" ]; then
+    if [ -f "$FIG_DIR/scores/scores_$FILE_NAME.pdf" ]; then
+        echo "Figure file for scores exists."
+    else
+        echo "Figure file scores does'nt exist."
+        echo "Doing scientific stuff to generate one..."
+        python plot_scores.py --method=$method \
+                               --distribution=$distribution \
+                               --correlation=$correlation \
+                               --structure=$structure \
+                               --mode=multi \
+                               --parameters $parameters \
+                               --from_size=$from_size \
+                               --to_size=$to_size \
+                               --n_sample=$n_sample \
+                               --n_restart=$n_restart
+    fi
 fi
+
+if [ "$compute" = "loglikelihood" ] || [ "$compute" = "all" ]; then
+    if [ -f "$FIG_DIR/loglikelihood/loglikelihood_$FILE_NAME.pdf" ]; then
+        echo "Figure file for loglikelihood exists."
+    else
+        echo "Figure file for loglikelihood does'nt exist."
+        echo "Doing scientific stuff to generate one..."
+        python plot_likelihood.py --method=$method \
+                               --distribution=$distribution \
+                               --correlation=$correlation \
+                               --structure=$structure \
+                               --mode=multi \
+                               --parameters $parameters \
+                               --from_size=$from_size \
+                               --to_size=$to_size \
+                               --n_sample=$n_sample \
+                               --n_restart=$n_restart
+    fi
+fi
+
 
 #######################################################################################
 ## Dirichlet distribution

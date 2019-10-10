@@ -56,6 +56,7 @@ directory = path.join(args.distribution, args.structure, correlation)
 data_directory = path.join("../data/samples/", directory)
 struct_directory = "../data/structures/"
 
+directory = path.join(directory, "scores")
 res_directory = "../results/"
 for d in directory.split('/'):
     if d:
