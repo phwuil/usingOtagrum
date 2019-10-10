@@ -20,6 +20,7 @@ to_size=30000
 n_sample=10
 n_restart=5
 sample_size=50000
+test_size=1000
 
 mcss=5      # Maximum size for the conditioning set in continuous PC
 alpha=0.05  # Confidence level for continuous PC
@@ -67,6 +68,11 @@ while [ "$1" != "" ]; do
 done
 
 DIR_SUFFIX="$distribution/$structure/r${correlation//./}"
+
+if [ "$distribution" = "dirichlet" ]; then
+    correlation=
+    DIR_SUFFIX="$distribution/$structure"
+fi
 
 DATA_DIR="$DATA_DIR_PREFIX/samples/$DIR_SUFFIX"
 STRUCT_DIR="$DATA_DIR_PREFIX/structures"
@@ -154,7 +160,8 @@ if [ "$compute" = "loglikelihood" ] || [ "$compute" = "all" ]; then
                                              --from_size=$from_size \
                                              --to_size=$to_size \
                                              --n_sample=$n_sample \
-                                             --n_restart=$n_restart
+                                             --n_restart=$n_restart \
+                                             --test_size=$test_size
     fi
 fi
 
@@ -188,79 +195,16 @@ if [ "$compute" = "loglikelihood" ] || [ "$compute" = "all" ]; then
     else
         echo "Figure file for loglikelihood does'nt exist."
         echo "Doing scientific stuff to generate one..."
-        python plot_likelihood.py --method=$method \
-                               --distribution=$distribution \
-                               --correlation=$correlation \
-                               --structure=$structure \
-                               --mode=multi \
-                               --parameters $parameters \
-                               --from_size=$from_size \
-                               --to_size=$to_size \
-                               --n_sample=$n_sample \
-                               --n_restart=$n_restart
+        python plot_loglikelihood.py --method=$method \
+                                     --distribution=$distribution \
+                                     --correlation=$correlation \
+                                     --structure=$structure \
+                                     --mode=multi \
+                                     --parameters $parameters \
+                                     --from_size=$from_size \
+                                     --to_size=$to_size \
+                                     --n_sample=$n_sample \
+                                     --n_restart=$n_restart
     fi
 fi
 
-
-#######################################################################################
-## Dirichlet distribution
-## CPC
-#python structural_scores.py --method=cpc --distribution=dirichlet --structure=asia \
-                            #--mode=multi --parameters 5 0.05 --from_size=$from_size \
-                            #--to_size=$to_size --n_sample=$n_sample \
-                            #--n_restart=$n_restart &&
-#python plot_results.py --method=cpc --distribution=dirichlet --structure=asia  \
-                       #--mode=multi --parameters 5 0.05 --from_size=$from_size \
-                       #--to_size=$to_size --n_sample=$n_sample --n_restart=$n_restart
-
-## Elidan
-#python structural_scores.py --method=elidan --distribution=dirichlet \
-                            #--structure=asia --mode=multi --parameters 4 4 \
-                            #--from_size=$from_size --to_size=$to_size \
-                            #--n_sample=$n_sample --n_restart=$n_restart &&
-#python plot_results.py --method=elidan --distribution=dirichlet --structure=asia \
-                       #--mode=multi --parameters 4 4 --from_size=$from_size \
-                       #--to_size=$to_size --n_sample=$n_sample --n_restart=$n_restart
-######################################################################################
-
-
-
-######################################################################################
-## Gaussian distribution
-## CPC
-#python structural_scores.py --method=cpc --distribution=gaussian --correlation=0.8 \
-                            #--structure=asia --mode=multi --parameters 5 0.05 \
-                            #--from_size=$from_size --to_size=$to_size \
-                            #--n_sample=$n_sample --n_restart=$n_restart &&
-#python plot_results.py --method=cpc --distribution=gaussian --correlation=0.8 \
-                       #--structure=asia --mode=multi --parameters 5 0.05 \
-                       #--from_size=$from_size --to_size=$to_size \
-                       #--n_sample=$n_sample --n_restart=$n_restart
-
-## Elidan
-#python structural_scores.py --method=elidan --distribution=gaussian \
-                            #--correlation=0.8 --structure=asia --mode=multi \
-                            #--parameters 4 4 --from_size=$from_size \
-                            #--to_size=$to_size --n_sample=$n_sample \
-                            #--n_restart=$n_restart &&
-#python plot_results.py --method=elidan --distribution=gaussian --correlation=0.8 \
-                       #--structure=asia --mode=multi --parameters 4 4 \
-                       #--from_size=$from_size --to_size=$to_size --n_sample=$n_sample --n_restart=$n_restart
-######################################################################################
-
-
-
-######################################################################################
-## Student distribution
-## CPC
-#python structural_scores.py --method=cpc --distribution=student --correlation=0.8 --structure=asia --mode=multi --parameters 5 0.05 \
-                            #--from_size=$from_size --to_size=$to_size --n_sample=$n_sample --n_restart=$n_restart &&
-#python plot_results.py --method=cpc --distribution=student --correlation=0.8 --structure=asia --mode=multi --parameters 5 0.05 \
-                            #--from_size=$from_size --to_size=$to_size --n_sample=$n_sample --n_restart=$n_restart
-
-## Elidan
-#python structural_scores.py --method=elidan --distribution=student --correlation=0.8 --structure=asia --mode=multi --parameters 4 4\
-                            #--from_size=$from_size --to_size=$to_size --n_sample=$n_sample --n_restart=$n_restart &&
-#python plot_results.py --method=elidan --distribution=student --correlation=0.8 --structure=asia --mode=multi --parameters 4 4 \
-                            #--from_size=$from_size --to_size=$to_size --n_sample=$n_sample --n_restart=$n_restart
-######################################################################################
