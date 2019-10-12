@@ -19,7 +19,9 @@ args = CLI.parse_args()
 
 n_sample = int(args.n_sample)
 sample_size = int(args.sample_size)
-correlation = float(args.correlation)
+correlation = args.correlation
+if correlation:
+    correlation = float(correlation)
 
 data_directory = path.join("../data/samples/", args.distribution)
 data_file_name = args.structure + "_" + args.distribution + "_sample"

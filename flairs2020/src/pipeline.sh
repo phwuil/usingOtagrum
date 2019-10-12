@@ -34,6 +34,12 @@ parameters=
 #results_exist=false
 #figures_exist=false
 
+forced=0
+regenerate=0
+recompute=0
+replot=0
+
+
 usage()
 {
     echo "usage: pipeline [[[-D distrib] [-C corr] [-S struct]] | [-h]]"
@@ -57,6 +63,14 @@ while [ "$1" != "" ]; do
         --compute )
             shift
             compute=$1;;
+        --regenerate )
+            regenerate=1;;
+        --recompute )
+            recompute=1;;
+        --replot )
+            replot=1;;
+        -f )
+            forced=1;;
         -h | --help )
             usage
             exit;;
@@ -125,6 +139,19 @@ fi
 #####################################################################################
 #                          Compute scores and loglikelihood results                 #
 #####################################################################################
+
+#if [ "$recompute" = "1" ]; then
+    #if [ "$forced" != "1"]; then
+        #response=
+        #echo "Old data are going to be removed."
+        #echo "Do you really want to proceed ? (y/n) > "
+        #read response
+        #if [ "$response" != "y" ]; then
+            #echo "Exiting program."
+            #exit 1
+        #fi
+    #fi
+#fi
 
 if [ "$compute" = "scores" ] || [ "$compute" = "all" ]; then
     if [ -f "$RES_DIR/scores/scores_$FILE_NAME.csv" ]; then

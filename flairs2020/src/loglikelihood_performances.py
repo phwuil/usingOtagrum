@@ -137,10 +137,14 @@ for f in files_in_directory:
             
             # I need to do a loop on row of the database or there is some segfault
             #ll = cbn.computeLogPDF(test).computeMean()[0]
-            ll = 0
-            for d in test:
-                ll += cbn.computeLogPDF(d)
-            ll /= len(test)
+            ll = 0.
+            count = 0
+            for t in test:
+                lp = cbn.computeLogPDF(t)
+                if (np.abs(lp) < 10):
+                    ll += lp
+                    count += 1
+            ll /= count
             list_loglikelihoods.append(ll)
             
     Loglikelihoods.append(list_loglikelihoods)
