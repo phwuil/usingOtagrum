@@ -8,25 +8,33 @@ RES_DIR_PREFIX="../results"
 FIG_DIR_PREFIX="../figures"
 
 compute="all"
+mode="multi"
+method="cpc"
+
 distribution="gaussian"
 correlation="0.8"
 structure="asia"
 
-mode="multi"
-method="cpc"
-
-from_size=1000
-to_size=30000
-n_sample=10
-n_restart=5
 sample_size=50000
 test_size=1000
+
+from_size=10000
+to_size=20000
+n_sample=5
+n_restart=1
+
+from_n_node=2
+to_n_node=22
+node_step=5
+density=1.2
 
 mcss=5      # Maximum size for the conditioning set in continuous PC
 alpha=0.05  # Confidence level for continuous PC
 
 mp=4        # Maximum parent in Elidan learning
 hcr=4       # Number of restart for the hill climbing in Elidan
+
+sample_size_time=30000
 
 parameters=
 
@@ -82,6 +90,7 @@ while [ "$1" != "" ]; do
 done
 
 DIR_SUFFIX="$distribution/$structure/r${correlation//./}"
+TIME_DIR_SUFFIX="$distribution/time_complexity/r${correlation//./}"
 
 if [ "$distribution" = "dirichlet" ]; then
     correlation=
@@ -91,7 +100,14 @@ fi
 DATA_DIR="$DATA_DIR_PREFIX/samples/$DIR_SUFFIX"
 STRUCT_DIR="$DATA_DIR_PREFIX/structures"
 RES_DIR="$RES_DIR_PREFIX/$DIR_SUFFIX"
+TIME_RES_DIR="$RES_DIR_PREFIX/$TIME_DIR_SUFFIX"
 FIG_DIR="$FIG_DIR_PREFIX/$DIR_SUFFIX"
+TIME_FIG_DIR="$FIG_DIR_PREFIX/$TIME_DIR_SUFFIX"
+
+str_alpha=$(awk '{print 100*$1}' <<< "${alpha}")
+
+TIME_FILE_NAME="time_${distribution}_f${from_n_node}t${to_n_node}s${node_step}"
+TIME_FILE_NAME="${TIME_FILE_NAME}mcss${mcss}alpha${str_alpha}mp${mp}hcr${hcr}" 
 
 FILE_NAME="${mode}_${method}_${structure}_${distribution}"
 FILE_NAME="${FILE_NAME}_f${from_size}t${to_size}s${n_sample}r${n_restart}" 
@@ -103,7 +119,7 @@ elif [ "$method" = "elidan" ]; then
     parameters="$mp $hcr"
 fi
 
-# Checking if structure text file exist
+# Checking if structure text file exists
 if [ -f "$STRUCT_DIR/$structure.txt" ]; then
     echo "The file $structure.txt exists."
 else
@@ -154,11 +170,12 @@ fi
 #fi
 
 if [ "$compute" = "scores" ] || [ "$compute" = "all" ]; then
-    if [ -f "$RES_DIR/scores/scores_$FILE_NAME.csv" ]; then
+    if [ -f "$RES_DIR/scores/scores_$FILE_NAME.csv" ] && [ "$recompute" = "0" ]; then
         echo "Result file for scores exists."
     else
         echo "Result file for scores does'nt exist."
         echo "Doing scientific stuff to generate one..."
+        echo "Computing results for scores..."
         python structural_scores.py --method=$method \
                                     --distribution=$distribution \
                                     --correlation=$correlation \
@@ -173,11 +190,10 @@ if [ "$compute" = "scores" ] || [ "$compute" = "all" ]; then
 fi
 
 if [ "$compute" = "loglikelihood" ] || [ "$compute" = "all" ]; then
-    if [ -f "$RES_DIR/loglikelihood/loglikelihood_$FILE_NAME.csv" ]; then
+    if [ -f "$RES_DIR/loglikelihood/loglikelihood_$FILE_NAME.csv" ] && [ "$recompute" = "0" ]; then
         echo "Result file for loglikelihood exists."
     else
-        echo "Result file for loglikelihood doesn't exist."
-        echo "Doing scientific stuff to generate one..."
+        echo "Computing results for loglikelihood..."
         python loglikelihood_performances.py --method=$method \
                                              --distribution=$distribution \
                                              --correlation=$correlation \
@@ -192,17 +208,48 @@ if [ "$compute" = "loglikelihood" ] || [ "$compute" = "all" ]; then
     fi
 fi
 
+if [ "$compute" = "time" ] || [ "$compute" = "all" ]; then
+    if [ -f "$TIME_RES_DIR/$TIME_FILE_NAME.csv" ] && [ "$recompute" = "0" ]; then
+        echo "Result file for time complexity exists."
+    else
+        echo "Computing results for time complexity..."
+        python time_complexity.py --distribution=$distribution \
+                                  --sample_size=$sample_size_time \
+                                  --density=$density \
+                                  --correlation=$correlation \
+                                  --mcss=$mcss \
+                                  --alpha=$alpha \
+                                  --mp=$mp \
+                                  --hcr=$hcr \
+                                  --from_size=$from_n_node \
+                                  --to_size=$to_n_node \
+                                  --step=$node_step
+    fi
+fi
+
 
 #####################################################################################
 #                                  Plot figures                                     #
 #####################################################################################
 
+#if [ "$recompute" = "1" ]; then
+    #if [ "$forced" != "1"]; then
+        #response=
+        #echo "Old data are going to be removed."
+        #echo "Do you really want to proceed ? (y/n) > "
+        #read response
+        #if [ "$response" != "y" ]; then
+            #echo "Exiting program."
+            #exit 1
+        #fi
+    #fi
+#fi
+
 if [ "$compute" = "scores" ] || [ "$compute" = "all" ]; then
-    if [ -f "$FIG_DIR/scores/scores_$FILE_NAME.pdf" ]; then
+    if [ -f "$FIG_DIR/scores/scores_$FILE_NAME.pdf" ] && [ "$replot" = "0" ]; then
         echo "Figure file for scores exists."
     else
-        echo "Figure file scores does'nt exist."
-        echo "Doing scientific stuff to generate one..."
+        echo "Plotting figure for scores..."
         python plot_scores.py --method=$method \
                                --distribution=$distribution \
                                --correlation=$correlation \
@@ -217,11 +264,10 @@ if [ "$compute" = "scores" ] || [ "$compute" = "all" ]; then
 fi
 
 if [ "$compute" = "loglikelihood" ] || [ "$compute" = "all" ]; then
-    if [ -f "$FIG_DIR/loglikelihood/loglikelihood_$FILE_NAME.pdf" ]; then
+    if [ -f "$FIG_DIR/loglikelihood/loglikelihood_$FILE_NAME.pdf" ] && [ "$replot" = "0" ]; then
         echo "Figure file for loglikelihood exists."
     else
-        echo "Figure file for loglikelihood does'nt exist."
-        echo "Doing scientific stuff to generate one..."
+        echo "Plotting figure for loglikelihood..."
         python plot_loglikelihood.py --method=$method \
                                      --distribution=$distribution \
                                      --correlation=$correlation \
@@ -232,6 +278,25 @@ if [ "$compute" = "loglikelihood" ] || [ "$compute" = "all" ]; then
                                      --to_size=$to_size \
                                      --n_sample=$n_sample \
                                      --n_restart=$n_restart
+    fi
+fi
+
+if [ "$compute" = "time" ] || [ "$compute" = "all" ]; then
+    if [ -f "$TIME_FIG_DIR/$TIME_FILE_NAME.pdf" ] && [ "$replot" = "0" ]; then
+        echo "Figure file for time exists."
+    else
+        echo "Plotting figure for time complexity..."
+        python plot_time_complexity.py --distribution=$distribution \
+                                       --sample_size=$sample_size_time \
+                                       --density=$density \
+                                       --correlation=$correlation \
+                                       --mcss=$mcss \
+                                       --alpha=$alpha \
+                                       --mp=$mp \
+                                       --hcr=$hcr \
+                                       --from_size=$from_n_node \
+                                       --to_size=$to_n_node \
+                                       --step=$node_step
     fi
 fi
 
