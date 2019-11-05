@@ -100,7 +100,7 @@ else:
     print("This mode doesn't exist !")
     
 # Computing structural scores
-scores = ut.scores_from_one_dataset(Tstruct, list_structures)
+scores = ut.structural_scores(Tstruct, list_structures)
 
 # Computing mean over the n_samples of each size
 mean_precision, mean_recall, mean_fscore = ut.compute_means(scores)
