@@ -68,7 +68,7 @@ def learning(sample, method, parameters):
         #gnb.showDot(learner.skeletonToDot(skeleton))
         #gnb.showDot(learner.PDAGtoDot((pdag)))
         
-        dag = learner.learnDAG()
+        ndag = learner.learnDAG()
 #        test = otagr.ContinuousTTest(sample)
 #        print("4,2|[]", test.isIndep(4, 2, []), flush=True)
 #        print("4,2|[6]", test.isIndep(4, 2, [6]), flush=True)
@@ -81,18 +81,28 @@ def learning(sample, method, parameters):
         #for n in it.combinations(nodes,2):
         #    pvalues.append(learner.getPValue(n[0], n[1]))
         
-        bn = named_dag_to_bn(dag)
+        TTest = otagr.ContinuousTTest(sample, alpha)
+        jointDistributions = []        
+        for i in range(ndag.getSize()):
+            d = 1+ndag.getParents(i).getSize()
+            K = TTest.GetK(len(sample), d)
+            indices = [int(n) for n in ndag.getParents(i)]
+            indices = [i] + indices
+            bernsteinCopula = ot.EmpiricalBernsteinCopula(sample.getMarginal(indices), K, False)
+            jointDistributions.append(bernsteinCopula)
+        
+        bn = named_dag_to_bn(ndag)
     
     elif method == "elidan":
         #print(sample.getDescription())
         max_parents, n_restart_hc = parameters
-        dag = hc.hill_climbing(sample, max_parents, n_restart_hc)[1]
+        copula, dag = hc.hill_climbing(sample, max_parents, n_restart_hc)[0:2]
         #bn = dag_to_bn(dag, Tstruct.names())
         bn = dag_to_bn(dag, sample.getDescription())
     else:
         print("Wrong entry for method argument !")
     
-    return bn
+    return bn, copula
 
 
 def struct_from_one_dataset(data_file, method, parameters,
@@ -160,7 +170,7 @@ def structure_prospecting(structures, index):
     for s in structures[index]:
         print(s.dag())
 
-def scores_from_one_dataset(true_structure, list_structures):
+def structural_scores(true_structure, list_structures):
     precision = []
     recall = []
     fscore = []
@@ -234,6 +244,17 @@ def generate_dirichlet_data(ndag, size):
         jointDistributions.append(ot.Dirichlet([(1.0+k)/(d+1) for k in range(d+1)]).getCopula())
     copula = otagr.ContinuousBayesianNetwork(ndag, jointDistributions)
     sample = copula.getSample(size)
+    return sample
+
+def generate_data(ndag, size, distribution="gaussian", r=0.8):
+    if distribution == "gaussian":
+        sample = generate_gaussian_data(ndag, size, r)
+    elif distribution == "student":
+        sample = generate_student_data(ndag, size, r)
+    elif distribution == "dirichlet":
+        sample = generate_dirichlet_data(ndag, size)
+    else:
+        print("Wrong entry for the distribution !")
     return sample
 
 def write_struct(file, bn):
