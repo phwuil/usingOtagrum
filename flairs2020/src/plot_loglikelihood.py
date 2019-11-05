@@ -116,7 +116,7 @@ elif method == "elidan":
 fig, ax = plt.subplots()
 
 ax.set_xlabel('Size')
-ax.set_ylabel('10-fold train log-probability / instance')
+ax.set_ylabel('Log-probability / instance')
 
 ax.set_title(fig_title)
 
