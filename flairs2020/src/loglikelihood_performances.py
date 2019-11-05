@@ -113,38 +113,76 @@ for f in files_in_directory:
     list_loglikelihoods = []
     for size in sizes:
         print("    Learning with", size, "data...", flush=True)
-        sample = data[0:size]
+        train = data[0:size]
         test = data[-test_size:]
         
         if method=="elidan":
-            c, g, s = hc.hill_climbing(sample, parameters[0], parameters[1])
-            list_loglikelihoods.append(sc.log_likelihood(test, c, g)/test.getSize())
+#            c, g, s = hc.hill_climbing(sample, parameters[0], parameters[1])
+#            list_loglikelihoods.append(sc.log_likelihood(test, c, g)/test.getSize())
+            kendall_tau = train.computeKendallTau()
+            pearson_r = ot.CorrelationMatrix(np.sin((np.pi/2)*kendall_tau))
+            
+            # Create the gaussian copula with parameters pearson_r
+            # if pearson_r isn't PSD, a regularization is done
+            eps = 1e-6
+            done = False
+            while not done:
+                try:    
+                    gaussian_copula = ot.NormalCopula(pearson_r)
+                    done = True
+                except:
+                    print("Regularization")
+                    for i in range(pearson_r.getDimension()):
+                        for j in range(i):
+                            pearson_r[i,j] /= 1 + eps
+            list_loglikelihoods.append(sc.log_likelihood(test, gaussian_copula, Tstruct)/test.getSize())
+            
         elif method=="cpc":
-            learner = otagr.ContinuousPC(sample, parameters[0], parameters[1])
-            ndag = learner.learnDAG()
+#            learner = otagr.ContinuousPC(sample, parameters[0], parameters[1])
+#            ndag = learner.learnDAG()
+#            TTest = otagr.ContinuousTTest(sample, alpha)
+#            jointDistributions = []        
+#            for i in range(ndag.getSize()):
+#                d = 1 + ndag.getParents(i).getSize()
+#                K = TTest.GetK(len(sample), d)
+#                indices = [int(n) for n in ndag.getParents(i)]
+#                indices = [i] + indices
+#                bernsteinCopula = ot.EmpiricalBernsteinCopula(sample.getMarginal(indices), K, False)
+#                jointDistributions.append(bernsteinCopula)
+#                
+#            cbn = otagr.ContinuousBayesianNetwork(ndag, jointDistributions)
+#            
+#            # I need to do a loop on row of the database or there is some segfault
+#            #ll = cbn.computeLogPDF(test).computeMean()[0]
+#            ll = 0.
+#            count = 0
+#            for t in test:
+#                lp = cbn.computeLogPDF(t)
+#                if (np.abs(lp) < 10):
+#                    ll += lp
+#                    count += 1
+#            ll /= count
+#            list_loglikelihoods.append(ll)
+            ndag = otagr.NamedDAG(Tstruct)
             order = ndag.getTopologicalOrder()
-            TTest = otagr.ContinuousTTest(sample, alpha)
+            TTest = otagr.ContinuousTTest(train, alpha)
             jointDistributions = []        
             for i in range(order.getSize()):
                 d = 1+ndag.getParents(i).getSize()
-                K = TTest.GetK(len(sample), d)
+                print(d)
+                K = TTest.GetK(len(train), d)
                 indices = [int(n) for n in ndag.getParents(i)]
                 indices = [i] + indices
-                bernsteinCopula = ot.EmpiricalBernsteinCopula(sample.getMarginal(indices), K, False)
+                bernsteinCopula = ot.EmpiricalBernsteinCopula(ot.Sample(train).getMarginal(indices), K, False)
                 jointDistributions.append(bernsteinCopula)
                 
+            print("jD", jointDistributions)
             cbn = otagr.ContinuousBayesianNetwork(ndag, jointDistributions)
-            
-            # I need to do a loop on row of the database or there is some segfault
-            #ll = cbn.computeLogPDF(test).computeMean()[0]
-            ll = 0.
-            count = 0
-            for t in test:
-                lp = cbn.computeLogPDF(t)
-                if (np.abs(lp) < 10):
-                    ll += lp
-                    count += 1
-            ll /= count
+            ll = 0
+            for d in test:
+                #print("contribution", cbn.computeLogPDF(d))
+                ll += cbn.computeLogPDF(d)
+            ll /= len(test)
             list_loglikelihoods.append(ll)
             
     Loglikelihoods.append(list_loglikelihoods)
@@ -195,9 +233,9 @@ np.savetxt(path.join(res_directory, title + ".csv"), results, fmt="%f", delimite
 #            sample = np.array(sample)
 #            list_loglikelihoods.append(sc.log_likelihood(ot.Sample(test), gaussian_copula, g)/test.shape[0])
 #            list_structures.append(g)
-            
-            
-            
+#            
+#            
+#            
 #            ndag = otagr.NamedDAG(Tstruct)
 #            order = ndag.getTopologicalOrder()
 #            TTest = otagr.ContinuousTTest(train, alpha)
