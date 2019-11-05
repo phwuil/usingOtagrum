@@ -46,13 +46,14 @@ Tstruct = ut.load_struct(path.join(struct_directory, Tstruct_file))
 ndag=otagr.NamedDAG(Tstruct)
 
 for i in range(n_existing_sample, n_sample):
-    if args.distribution == "gaussian":
-        sample = ut.generate_gaussian_data(ndag, sample_size, correlation)
-    elif args.distribution == "student":
-        sample = ut.generate_student_data(ndag, sample_size, correlation)
-    elif args.distribution == "dirichlet":
-        sample = ut.generate_dirichlet_data(ndag, sample_size)
-    else:
-        print("Wrong entry for the distribution !")
+#    if args.distribution == "gaussian":
+#        sample = ut.generate_gaussian_data(ndag, sample_size, correlation)
+#    elif args.distribution == "student":
+#        sample = ut.generate_student_data(ndag, sample_size, correlation)
+#    elif args.distribution == "dirichlet":
+#        sample = ut.generate_dirichlet_data(ndag, sample_size)
+#    else:
+#        print("Wrong entry for the distribution !")
+    sample = ut.generate_data(ndag, sample_size, args.distribution, correlation)
     sample.exportToCSVFile(path.join(data_directory, data_file_name) + \
                            '_' + str(i+1).zfill(2) + ".csv", ',')
