@@ -10,6 +10,7 @@ FIG_DIR_PREFIX="../figures"
 compute="all"
 mode="multi"
 method="cpc"
+score="all"
 
 distribution="gaussian"
 correlation="0.8"
@@ -18,9 +19,9 @@ structure="asia"
 sample_size=50000
 test_size=1000
 
-from_size=10000
-to_size=20000
-n_sample=5
+from_size=100
+to_size=10000
+n_sample=11
 n_restart=1
 
 from_n_node=2
@@ -71,6 +72,9 @@ while [ "$1" != "" ]; do
         --compute )
             shift
             compute=$1;;
+        --score )
+            shift
+            score=$1;;
         --regenerate )
             regenerate=1;;
         --recompute )
@@ -170,22 +174,25 @@ fi
 #fi
 
 if [ "$compute" = "scores" ] || [ "$compute" = "all" ]; then
-    if [ -f "$RES_DIR/scores/scores_$FILE_NAME.csv" ] && [ "$recompute" = "0" ]; then
-        echo "Result file for scores exists."
-    else
-        echo "Result file for scores does'nt exist."
-        echo "Doing scientific stuff to generate one..."
-        echo "Computing results for scores..."
-        python structural_scores.py --method=$method \
-                                    --distribution=$distribution \
-                                    --correlation=$correlation \
-                                    --structure=$structure \
-                                    --mode=multi \
-                                    --parameters $parameters \
-                                    --from_size=$from_size \
-                                    --to_size=$to_size \
-                                    --n_sample=$n_sample \
-                                    --n_restart=$n_restart
+    if [ "$score" = "skeleton" ] || [ "$score" = "all" ]; then
+        if [ -f "$RES_DIR/scores/${score}_scores_$FILE_NAME.csv" ] && [ "$recompute" = "0" ]; then
+            echo "Result file for scores exists."
+        else
+            echo "Result file for scores does'nt exist."
+            echo "Doing scientific stuff to generate one..."
+            echo "Computing results for scores..."
+            python structural_scores.py --method=$method \
+                                        --distribution=$distribution \
+                                        --correlation=$correlation \
+                                        --structure=$structure \
+                                        --score=$score \
+                                        --mode=multi \
+                                        --parameters $parameters \
+                                        --from_size=$from_size \
+                                        --to_size=$to_size \
+                                        --n_sample=$n_sample \
+                                        --n_restart=$n_restart
+        fi
     fi
 fi
 
@@ -246,16 +253,20 @@ fi
 #fi
 
 if [ "$compute" = "scores" ] || [ "$compute" = "all" ]; then
-    if [ -f "$FIG_DIR/scores/scores_$FILE_NAME.pdf" ] && [ "$replot" = "0" ]; then
+    if [ -f "$FIG_DIR/scores/${score}_scores_$FILE_NAME.pdf" ] && [ "$replot" = "0" ]; then
         echo "Figure file for scores exists."
     else
         echo "Plotting figure for scores..."
         python plot_scores.py --method=$method \
+                               --score=$score \
                                --distribution=$distribution \
                                --correlation=$correlation \
                                --structure=$structure \
                                --mode=multi \
-                               --parameters $parameters \
+                               --mcss=$mcss \
+                               --alpha=$alpha \
+                               --mp=$mp \
+                               --hcr=$hcr \
                                --from_size=$from_size \
                                --to_size=$to_size \
                                --n_sample=$n_sample \

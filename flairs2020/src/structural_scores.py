@@ -10,6 +10,7 @@ import os
 import argparse
 
 CLI = argparse.ArgumentParser()
+CLI.add_argument("--score")
 CLI.add_argument("--method")
 CLI.add_argument("--mode")
 CLI.add_argument("--distribution")
@@ -45,6 +46,7 @@ else:
     print("Wrong entry for method")
 
 # Learning parameters
+score = args.score
 n_samples = int(args.n_sample)    # Number of points of the curve
 n_restart = int(args.n_restart)   # Number of restart for each point
 start_size = int(args.from_size)  # Left bound of the curve
@@ -98,40 +100,56 @@ elif args.mode == "multi":
                                                        restart=n_restart)
 else:
     print("This mode doesn't exist !")
+       
     
-# Computing structural scores
-scores = ut.structural_scores(Tstruct, list_structures)
-
-# Computing mean over the n_samples of each size
-mean_precision, mean_recall, mean_fscore = ut.compute_means(scores)
-
-# Computing standard deviation over the n_samples of each size
-std_precision, std_recall, std_fscore = ut.compute_stds(scores)
-
 # Setting sizes for which scores are computed
 sizes = np.linspace(start_size, end_size, n_samples, dtype=int)
 # Reshaping sizes for concatenation
 sizes = sizes.reshape(n_samples,1)
 
-results = np.concatenate((sizes, mean_precision, mean_recall, mean_fscore,
-                          std_precision, std_recall, std_fscore), axis=1)
+# Computing structural scores
+if (score == "skeleton") or (score == "all"):
+    skel_scores = ut.structural_scores(Tstruct, list_structures, step="skeleton")
+    mean_skelP, mean_skelR, mean_skelF = ut.compute_means(skel_scores)
+    std_skelP, std_skelR, std_skelF = ut.compute_stds(skel_scores)
+    skel_results = np.concatenate((sizes, mean_skelP, mean_skelR, mean_skelF,
+                                   std_skelP, std_skelR, std_skelF), axis=1)
+elif (score == "dag") or (score == "all"):
+    dag_scores = ut.structural_scores(Tstruct, list_structures, step="dag")
+    mean_dagP, mean_dagR, mean_dagF = ut.compute_means(dag_scores)
+    std_dagP, std_dagR, std_dagF = ut.compute_stds(dag_scores)
+    dag_results = np.concatenate((sizes, mean_dagP, mean_dagR, mean_dagF,
+                                  std_dagP, std_dagR, std_dagF), axis=1)
 
+#print("Tstruct", Tstruct.dag())
+#print("struct", list_structures[0][0].dag())
+#print("sprecision", skel_scores[0])
+#print("srecall", skel_scores[1])
+#print("sfscore", skel_scores[2])
+#print("dprecision", dag_scores[0])
+#print("drecall", dag_scores[1])
+#print("dfscore", dag_scores[2])
+
+print("Type score", type(score))
 header = "Size, Precision_mean, Recall_mean, Fscore_mean, " + \
          "Precision_std, Recall_std, Fscore_std"
          
 if args.method == "cpc":
-    title = "scores_" + args.mode + "_cpc_" + data_file_name + "_" + "f" + str(start_size) + \
+    title = score + "_scores_" + args.mode + "_cpc_" + data_file_name + "_" + \
+            "f" + str(start_size) + \
             "t" + str(end_size) + "s" + str(n_samples) + "r" + str(n_restart) + \
             "mcss" + str(binNumber) + "alpha" + str(int(100*alpha))
             
 elif args.method == "elidan":
-    title = "scores_" + args.mode + "_elidan_" + data_file_name + "_" + "f" + str(start_size) + \
+    title = score + "_scores_" + args.mode + "_elidan_" + data_file_name + "_" + \
+            "f" + str(start_size) + \
             "t" + str(end_size) + "s" + str(n_samples) + "r" + str(n_restart) + \
             "mp" + str(max_parents) + "hcr" + str(n_restart_hc) 
 else:
     print("Wrong entry for method argument")
     
+print(title)
 print("Writing results in ", path.join(res_directory, title + ".csv"))
 np.savetxt(path.join(res_directory, title + ".csv"),
-           results, fmt="%f", delimiter=',', header=header)
+           skel_results, fmt="%f", delimiter=',', header=header)
 

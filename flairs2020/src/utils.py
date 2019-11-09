@@ -24,13 +24,13 @@ from pyAgrum.lib.bn_vs_bn import GraphicalBNComparator
 #    plt.show()
 
 
-def plot_error(x, mean, std, alpha=0.4, ax=None):
+def plot_error(x, mean, std, alpha=0.4, ax=None, color=None):
     x, mean, std = x.flatten(), mean.flatten(), std.flatten()
     lower, upper = mean-std, mean+std
     if ax:
-        ax.fill_between(x, lower, upper, alpha=alpha)
+        ax.fill_between(x, lower, upper, alpha=alpha, color=color)
     else:
-        plt.fill_between(x, lower, upper, alpha=alpha)
+        plt.fill_between(x, lower, upper, alpha=alpha, color=color)
 
 def named_dag_to_bn(ndag):
     # DAG to BN
@@ -62,24 +62,8 @@ def learning(sample, method, parameters):
     if method == "cpc":
         binNumber, alpha = parameters
         learner = otagr.ContinuousPC(sample, binNumber, alpha)
-        #learner.setVerbosity(True)
-        #skeleton = learner.learnSkeleton()
-        #pdag = learner.learnPDAG()
-        #gnb.showDot(learner.skeletonToDot(skeleton))
-        #gnb.showDot(learner.PDAGtoDot((pdag)))
         
         ndag = learner.learnDAG()
-#        test = otagr.ContinuousTTest(sample)
-#        print("4,2|[]", test.isIndep(4, 2, []), flush=True)
-#        print("4,2|[6]", test.isIndep(4, 2, [6]), flush=True)
-#        print("4,2|[7]", test.isIndep(4, 2, [7]), flush=True)
-#        print("4,2|[3]", test.isIndep(4, 2, [3]), flush=True)
-#        print("4,2|[3,7]", test.isIndep(4, 2, [3,7]), flush=True)
-        #for s in learner.getTrace():
-        #    print(s)
-        #nodes = dag.getDescription()
-        #for n in it.combinations(nodes,2):
-        #    pvalues.append(learner.getPValue(n[0], n[1]))
         
         TTest = otagr.ContinuousTTest(sample, alpha)
         jointDistributions = []        
@@ -102,7 +86,7 @@ def learning(sample, method, parameters):
     else:
         print("Wrong entry for method argument !")
     
-    return bn, copula
+    return bn
 
 
 def struct_from_one_dataset(data_file, method, parameters,
@@ -170,7 +154,7 @@ def structure_prospecting(structures, index):
     for s in structures[index]:
         print(s.dag())
 
-def structural_scores(true_structure, list_structures):
+def structural_scores(true_structure, list_structures, step="dag"):
     precision = []
     recall = []
     fscore = []
@@ -181,8 +165,13 @@ def structural_scores(true_structure, list_structures):
         for s in l: 
             #bn = named_dag_to_bn(s, Tstruct.names())
             comparison = GraphicalBNComparator(true_structure, s)
-            scores = comparison.scores()
-            #print(scores)
+            if step == "skeleton":
+                scores = comparison.skeletonScores()
+            elif step == "dag":
+                scores = comparison.scores()
+            else:
+                print("Wrong entry for argument!")
+            
             list_precision.append(scores['precision'])
             list_recall.append(scores['recall'])
             list_fscore.append(scores['fscore'])
