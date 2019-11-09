@@ -123,7 +123,7 @@ ax.set_title(fig_title)
 alpha_t = 0.4
 
 ax.set_xlim([int(from_size), int(to_size)])
-#ax.set_ylim(0.,3.)
+ax.set_ylim(0.2,0.7)
 
 ax.plot(sizes, mean_ll)
 ut.plot_error(sizes, mean_ll, std_ll, alpha_t, ax=ax)
