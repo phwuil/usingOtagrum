@@ -17,7 +17,6 @@ import argparse
 CLI = argparse.ArgumentParser()
 CLI.add_argument("--score")
 CLI.add_argument("--method")
-CLI.add_argument("--mode")
 CLI.add_argument("--distribution")
 CLI.add_argument("--structure")
 CLI.add_argument("--from_size")
@@ -38,7 +37,6 @@ else:
 
 # Arguments
 score = args.score
-mode = args.mode
 method = args.method
 distribution = args.distribution
 structure = args.structure
@@ -72,14 +70,14 @@ if method == "cpc":
     s_alpha = str(int(100*alpha))
     suffix = ''.join(['f', from_size, 't', to_size, 's', n_sample, 'r', n_restart,
                       'mcss', s_mcss, 'alpha', s_alpha])
-    res_file_name = '_'.join([score, "scores", mode, method, structure, distribution, suffix])
+    res_file_name = '_'.join([score, "scores", method, structure, distribution, suffix])
                          
 elif method == "elidan":
     s_mp = str(max_parents)
     s_hcr = str(n_restart_hc)
     suffix = ''.join(['f', from_size, 't', to_size, 's', n_sample, 'r', n_restart,
                       'mp', s_mp, 'hcr', s_hcr])
-    res_file_name = '_'.join([score, "scores", mode, method, structure, distribution, suffix])
+    res_file_name = '_'.join([score, "scores", method, structure, distribution, suffix])
 elif method == "both":
     s_mcss = str(mcss)
     s_alpha = str(int(100*alpha))
@@ -89,8 +87,8 @@ elif method == "both":
                       'mcss', s_mcss, 'alpha', s_alpha])
     suffix_elidan = ''.join(['f', from_size, 't', to_size, 's', n_sample, 'r', n_restart,
                       'mp', s_mp, 'hcr', s_hcr])
-    res_file_name_cpc = '_'.join([score, "scores", mode, "cpc", structure, distribution, suffix_cpc])
-    res_file_name_elidan = '_'.join([score, "scores", mode, "elidan", structure, distribution, suffix_elidan])
+    res_file_name_cpc = '_'.join([score, "scores", "cpc", structure, distribution, suffix_cpc])
+    res_file_name_elidan = '_'.join([score, "scores", "elidan", structure, distribution, suffix_elidan])
 else:
     print("Wrong entry for method !")
 
@@ -156,10 +154,10 @@ ax.set_ylim(0,1)
 alpha_t = 0.4
 if method == "cpc":
     ax.plot(sizes, res[3], linestyle="-.", linewidth=1.25, color="green", label='cpc')
-    ut.plot_error(sizes, mean_fscore, std_fscore, alpha_t, ax=ax)
+    ut.plot_error(sizes, mean_fscore, std_fscore, alpha_t, ax=ax, color="green")
 elif method == "elidan":
-    ax.plot(sizes, res[3], linestyle="--", linewidth=1.25, color="orange", label='cpc')
-    ut.plot_error(sizes, mean_fscore, std_fscore, alpha_t, ax=ax)
+    ax.plot(sizes, res[3], linestyle="--", linewidth=1.25, color="orange", label='elidan')
+    ut.plot_error(sizes, mean_fscore, std_fscore, alpha_t, ax=ax, color="orange")
 elif method == "both":
     ax.plot(sizes_cpc, res_cpc[3], linestyle="-.", linewidth=1.25, color="green", label='cpc')
     ut.plot_error(sizes_cpc, mean_fscore_cpc, std_fscore_cpc, alpha_t, ax=ax, color="green")
@@ -173,6 +171,6 @@ if (method == "cpc") or (method == "elidan"):
 elif method == "both":
     suffix = ''.join(['f', from_size, 't', to_size, 's', n_sample, 'r', n_restart,
                       'mp', s_mp, 'hcr', s_hcr, 'mcss', s_mcss, 'alpha', s_alpha])
-    fig_file_name = '_'.join(['fscore_comparison', mode, structure, distribution, suffix])
+    fig_file_name = '_'.join(['fscore_comparison', structure, distribution, suffix])
     plt.savefig(path.join(fig_directory, fig_file_name + ".pdf"), transparent=True)
     print("Saving figure in ", path.join(fig_directory, fig_file_name + ".pdf"))
