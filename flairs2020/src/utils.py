@@ -200,8 +200,8 @@ def compute_stds(scores):
 def generate_gaussian_data(ndag, size, r=0.8):
     order=ndag.getTopologicalOrder()
     jointDistributions=[]
-    for i in range(order.getSize()):
-        d = 1 + ndag.getParents(i).getSize()
+    for k in range(order.getSize()):
+        d = 1 + ndag.getParents(k).getSize()
         R = ot.CorrelationMatrix(d)
         for i in range(d):
             for j in range(i):
@@ -214,8 +214,8 @@ def generate_gaussian_data(ndag, size, r=0.8):
 def generate_student_data(ndag, size, r=0.8):
     order=ndag.getTopologicalOrder()
     jointDistributions=[]
-    for i in range(order.getSize()):
-        d = 1 + ndag.getParents(i).getSize()
+    for k in range(order.getSize()):
+        d = 1 + ndag.getParents(k).getSize()
         R = ot.CorrelationMatrix(d)
         for i in range(d):
             for j in range(i):
@@ -228,8 +228,8 @@ def generate_student_data(ndag, size, r=0.8):
 def generate_dirichlet_data(ndag, size):
     order=ndag.getTopologicalOrder()
     jointDistributions=[]
-    for i in range(order.getSize()):
-        d = 1 + ndag.getParents(i).getSize()
+    for k in range(order.getSize()):
+        d = 1 + ndag.getParents(k).getSize()
         jointDistributions.append(ot.Dirichlet([(1.0+k)/(d+1) for k in range(d+1)]).getCopula())
     copula = otagr.ContinuousBayesianNetwork(ndag, jointDistributions)
     sample = copula.getSample(size)
