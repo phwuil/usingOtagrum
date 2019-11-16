@@ -12,7 +12,6 @@ import argparse
 CLI = argparse.ArgumentParser()
 CLI.add_argument("--score")
 CLI.add_argument("--method")
-CLI.add_argument("--mode")
 CLI.add_argument("--distribution")
 CLI.add_argument("--structure")
 CLI.add_argument("--from_size")
@@ -29,10 +28,11 @@ if (args.distribution == "gaussian" or args.distribution == "student") and args.
 else:
     correlation = ''
 
+method = args.method
 
 # Continuous PC parameters
 if args.method == "cpc":
-    binNumber = int(args.parameters[0])                 # max size of conditional set
+    binNumber = int(args.parameters[0])         # max size of conditional set
     alpha = args.parameters[1]                  # Confidence threshold
     parameters = [binNumber, alpha]
     
@@ -66,13 +66,8 @@ for d in directory.split('/'):
         if not path.isdir(res_directory):
             os.mkdir(res_directory)
 
-if args.mode == "unique":
-    data_file_name = '_'.join([args.structure, args.distribution, "sample_01"])
-    data_file = data_file_name + ".csv"
-elif args.mode == "multi":
-    data_file_name = '_'.join([args.structure, args.distribution])
-else:
-    print("Wrong entry for mode !")
+
+data_file_name = '_'.join([args.structure, args.distribution])
 
 Tstruct_file = args.structure + ".txt"
 Tstruct_file_name = args.structure
@@ -80,26 +75,14 @@ Tstruct_file_name = args.structure
 # Loading true structure
 Tstruct = ut.load_struct(path.join(struct_directory, Tstruct_file))
 
-
-if args.mode == "unique":
-    # Learning structures on one dataset
-    list_structures = ut.struct_from_one_dataset(path.join(data_directory, data_file),
-                                              method=args.method,
-                                              start=start_size,
-                                              end=end_size,
-                                              num=n_samples,
-                                              restart=n_restart)
-elif args.mode == "multi":
-     # Learning structures on multiple dataset
-     list_structures = ut.struct_from_multiple_dataset(data_directory,
-                                                       method=args.method,
-                                                       parameters=parameters,
-                                                       start=start_size,
-                                                       end=end_size,
-                                                       num=n_samples, 
-                                                       restart=n_restart)
-else:
-    print("This mode doesn't exist !")
+# Learning structures on multiple dataset
+list_structures = ut.struct_from_multiple_dataset(data_directory,
+                                                  method=args.method,
+                                                  parameters=parameters,
+                                                  start=start_size,
+                                                  end=end_size,
+                                                  num=n_samples, 
+                                                  restart=n_restart)
        
     
 # Setting sizes for which scores are computed
@@ -114,42 +97,42 @@ if (score == "skeleton") or (score == "all"):
     std_skelP, std_skelR, std_skelF = ut.compute_stds(skel_scores)
     skel_results = np.concatenate((sizes, mean_skelP, mean_skelR, mean_skelF,
                                    std_skelP, std_skelR, std_skelF), axis=1)
-elif (score == "dag") or (score == "all"):
+if (score == "dag") or (score == "all"):
     dag_scores = ut.structural_scores(Tstruct, list_structures, step="dag")
     mean_dagP, mean_dagR, mean_dagF = ut.compute_means(dag_scores)
     std_dagP, std_dagR, std_dagF = ut.compute_stds(dag_scores)
     dag_results = np.concatenate((sizes, mean_dagP, mean_dagR, mean_dagF,
                                   std_dagP, std_dagR, std_dagF), axis=1)
+if (score == "hamming") or (score == "all"):
+    hamming_scores = ut.hamming_score(Tstruct, list_structures)
+    mean_hamming = np.mean(hamming_scores, axis=1).reshape((len(hamming_scores),1))
+    std_hamming = np.std(hamming_scores, axis=1).reshape((len(hamming_scores),1))
+    hamming_results = np.concatenate((sizes, mean_hamming, std_hamming), axis=1)
 
-#print("Tstruct", Tstruct.dag())
-#print("struct", list_structures[0][0].dag())
-#print("sprecision", skel_scores[0])
-#print("srecall", skel_scores[1])
-#print("sfscore", skel_scores[2])
-#print("dprecision", dag_scores[0])
-#print("drecall", dag_scores[1])
-#print("dfscore", dag_scores[2])
 
-print("Type score", type(score))
+# Writing results
 header = "Size, Precision_mean, Recall_mean, Fscore_mean, " + \
          "Precision_std, Recall_std, Fscore_std"
-         
+
+title = "scores_" + method + '_' + data_file_name + '_' + \
+            "f" + str(start_size) + "t" + str(end_size) + "s" + str(n_samples) + \
+            "r" + str(n_restart)
+
 if args.method == "cpc":
-    title = score + "_scores_" + args.mode + "_cpc_" + data_file_name + "_" + \
-            "f" + str(start_size) + \
-            "t" + str(end_size) + "s" + str(n_samples) + "r" + str(n_restart) + \
-            "mcss" + str(binNumber) + "alpha" + str(int(100*alpha))
-            
+    title += "mcss" + str(binNumber) + "alpha" + str(int(100*alpha))
 elif args.method == "elidan":
-    title = score + "_scores_" + args.mode + "_elidan_" + data_file_name + "_" + \
-            "f" + str(start_size) + \
-            "t" + str(end_size) + "s" + str(n_samples) + "r" + str(n_restart) + \
-            "mp" + str(max_parents) + "hcr" + str(n_restart_hc) 
+    title += "mp" + str(max_parents) + "hcr" + str(n_restart_hc) 
 else:
     print("Wrong entry for method argument")
     
-print(title)
 print("Writing results in ", path.join(res_directory, title + ".csv"))
-np.savetxt(path.join(res_directory, title + ".csv"),
-           skel_results, fmt="%f", delimiter=',', header=header)
 
+if (score == "skeleton") or (score == "all"):
+    np.savetxt(path.join(res_directory, "skeleton_" + title + ".csv"),
+               skel_results, fmt="%f", delimiter=',', header=header)
+if (score == "dag") or (score == "all"):
+    np.savetxt(path.join(res_directory, "dag_" + title + ".csv"),
+               dag_results, fmt="%f", delimiter=',', header=header)
+if (score == "hamming") or (score == "all"):
+    np.savetxt(path.join(res_directory, "hamming_" + title + ".csv"),
+               hamming_results, fmt="%f", delimiter=',')
