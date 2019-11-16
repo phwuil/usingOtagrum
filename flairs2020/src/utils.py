@@ -181,6 +181,18 @@ def structural_scores(true_structure, list_structures, step="dag"):
         fscore.append(list_fscore)
     return precision, recall, fscore
 
+def hamming_score(true_structure, list_structures):
+    score = []
+    for l in list_structures:
+        list_score = []
+        for s in l: 
+            comparison = GraphicalBNComparator(true_structure, s)
+            shd = comparison.hamming()
+            list_score.append(shd['structural hamming'])
+        
+        score.append(list_score)
+    return score
+
 def compute_means(scores):
     # Computing mean over the n_samples of each size
     precision, recall, fscore = scores
