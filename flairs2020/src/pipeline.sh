@@ -8,7 +8,6 @@ RES_DIR_PREFIX="../results"
 FIG_DIR_PREFIX="../figures"
 
 compute="all"
-mode="multi"
 method="cpc"
 score="all"
 
@@ -20,9 +19,9 @@ sample_size=50000
 test_size=1000
 
 from_size=100
-to_size=10000
-n_sample=11
-n_restart=1
+to_size=20000
+n_sample=21
+n_restart=5
 
 from_n_node=2
 to_n_node=22
@@ -33,7 +32,7 @@ mcss=5      # Maximum size for the conditioning set in continuous PC
 alpha=0.05  # Confidence level for continuous PC
 
 mp=4        # Maximum parent in Elidan learning
-hcr=4       # Number of restart for the hill climbing in Elidan
+hcr=1       # Number of restart for the hill climbing in Elidan
 
 sample_size_time=30000
 
@@ -113,7 +112,7 @@ str_alpha=$(awk '{print 100*$1}' <<< "${alpha}")
 TIME_FILE_NAME="time_${distribution}_f${from_n_node}t${to_n_node}s${node_step}"
 TIME_FILE_NAME="${TIME_FILE_NAME}mcss${mcss}alpha${str_alpha}mp${mp}hcr${hcr}" 
 
-FILE_NAME="${mode}_${method}_${structure}_${distribution}"
+FILE_NAME="${method}_${structure}_${distribution}"
 FILE_NAME="${FILE_NAME}_f${from_size}t${to_size}s${n_sample}r${n_restart}" 
 if [ "$method" = "cpc" ]; then
     FILE_NAME="${FILE_NAME}mcss${mcss}alpha$(awk '{print 100*$1}' <<< "${alpha}")"
@@ -160,21 +159,7 @@ fi
 #                          Compute scores and loglikelihood results                 #
 #####################################################################################
 
-#if [ "$recompute" = "1" ]; then
-    #if [ "$forced" != "1"]; then
-        #response=
-        #echo "Old data are going to be removed."
-        #echo "Do you really want to proceed ? (y/n) > "
-        #read response
-        #if [ "$response" != "y" ]; then
-            #echo "Exiting program."
-            #exit 1
-        #fi
-    #fi
-#fi
-
 if [ "$compute" = "scores" ] || [ "$compute" = "all" ]; then
-    if [ "$score" = "skeleton" ] || [ "$score" = "all" ]; then
         if [ -f "$RES_DIR/scores/${score}_scores_$FILE_NAME.csv" ] && [ "$recompute" = "0" ]; then
             echo "Result file for scores exists."
         else
@@ -186,14 +171,12 @@ if [ "$compute" = "scores" ] || [ "$compute" = "all" ]; then
                                         --correlation=$correlation \
                                         --structure=$structure \
                                         --score=$score \
-                                        --mode=multi \
                                         --parameters $parameters \
                                         --from_size=$from_size \
                                         --to_size=$to_size \
                                         --n_sample=$n_sample \
                                         --n_restart=$n_restart
         fi
-    fi
 fi
 
 if [ "$compute" = "loglikelihood" ] || [ "$compute" = "all" ]; then
@@ -205,7 +188,6 @@ if [ "$compute" = "loglikelihood" ] || [ "$compute" = "all" ]; then
                                              --distribution=$distribution \
                                              --correlation=$correlation \
                                              --structure=$structure \
-                                             --mode=multi \
                                              --parameters $parameters \
                                              --from_size=$from_size \
                                              --to_size=$to_size \
@@ -239,38 +221,59 @@ fi
 #                                  Plot figures                                     #
 #####################################################################################
 
-#if [ "$recompute" = "1" ]; then
-    #if [ "$forced" != "1"]; then
-        #response=
-        #echo "Old data are going to be removed."
-        #echo "Do you really want to proceed ? (y/n) > "
-        #read response
-        #if [ "$response" != "y" ]; then
-            #echo "Exiting program."
-            #exit 1
-        #fi
-    #fi
-#fi
-
 if [ "$compute" = "scores" ] || [ "$compute" = "all" ]; then
     if [ -f "$FIG_DIR/scores/${score}_scores_$FILE_NAME.pdf" ] && [ "$replot" = "0" ]; then
         echo "Figure file for scores exists."
     else
-        echo "Plotting figure for scores..."
-        python plot_scores.py --method=$method \
-                               --score=$score \
-                               --distribution=$distribution \
-                               --correlation=$correlation \
-                               --structure=$structure \
-                               --mode=multi \
-                               --mcss=$mcss \
-                               --alpha=$alpha \
-                               --mp=$mp \
-                               --hcr=$hcr \
-                               --from_size=$from_size \
-                               --to_size=$to_size \
-                               --n_sample=$n_sample \
-                               --n_restart=$n_restart
+        if [ "$score" = "skeleton" ] || [ "$score" = "all" ]; then
+            echo "Plotting figure for scores..."
+            python plot_scores.py --method=$method \
+                                  --score="skeleton" \
+                                  --distribution=$distribution \
+                                  --correlation=$correlation \
+                                  --structure=$structure \
+                                  --mcss=$mcss \
+                                  --alpha=$alpha \
+                                  --mp=$mp \
+                                  --hcr=$hcr \
+                                  --from_size=$from_size \
+                                  --to_size=$to_size \
+                                  --n_sample=$n_sample \
+                                  --n_restart=$n_restart
+        fi
+
+        if [ "$score" = "dag" ] || [ "$score" = "all" ]; then
+            echo "Plotting figure for scores..."
+            python plot_scores.py --method=$method \
+                                  --score="dag" \
+                                  --distribution=$distribution \
+                                  --correlation=$correlation \
+                                  --structure=$structure \
+                                  --mcss=$mcss \
+                                  --alpha=$alpha \
+                                  --mp=$mp \
+                                  --hcr=$hcr \
+                                  --from_size=$from_size \
+                                  --to_size=$to_size \
+                                  --n_sample=$n_sample \
+                                  --n_restart=$n_restart
+        fi
+
+        if [ "$score" = "hamming" ] || [ "$score" = "all" ]; then
+            echo "Plotting figure for scores..."
+            python plot_hamming.py --method=$method \
+                                  --distribution=$distribution \
+                                  --correlation=$correlation \
+                                  --structure=$structure \
+                                  --mcss=$mcss \
+                                  --alpha=$alpha \
+                                  --mp=$mp \
+                                  --hcr=$hcr \
+                                  --from_size=$from_size \
+                                  --to_size=$to_size \
+                                  --n_sample=$n_sample \
+                                  --n_restart=$n_restart
+        fi
     fi
 fi
 
@@ -283,7 +286,6 @@ if [ "$compute" = "loglikelihood" ] || [ "$compute" = "all" ]; then
                                      --distribution=$distribution \
                                      --correlation=$correlation \
                                      --structure=$structure \
-                                     --mode=multi \
                                      --parameters $parameters \
                                      --from_size=$from_size \
                                      --to_size=$to_size \
