@@ -92,7 +92,7 @@ fig, ax = plt.subplots()
 ax.set_xlabel('Number of nodes')
 ax.set_ylabel('Time (s)')
 
-ax.set_title(fig_title)
+#ax.set_title(fig_title)
 
 ax.xaxis.set_major_locator(MaxNLocator(integer=True))
 ax.set_xlim([start_size, end_size])
