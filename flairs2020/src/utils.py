@@ -69,10 +69,13 @@ def learning(sample, method, parameters):
         jointDistributions = []        
         for i in range(ndag.getSize()):
             d = 1+ndag.getParents(i).getSize()
-            K = TTest.GetK(len(sample), d)
-            indices = [int(n) for n in ndag.getParents(i)]
-            indices = [i] + indices
-            bernsteinCopula = ot.EmpiricalBernsteinCopula(sample.getMarginal(indices), K, False)
+            if d == 1:
+                bernsteinCopula = ot.Uniform(0.0, 1.0)
+            else:
+                K = TTest.GetK(len(sample), d)
+                indices = [int(n) for n in ndag.getParents(i)]
+                indices = [i] + indices
+                bernsteinCopula = ot.EmpiricalBernsteinCopula(sample.getMarginal(indices), K, False)
             jointDistributions.append(bernsteinCopula)
         
         bn = named_dag_to_bn(ndag)
@@ -139,7 +142,7 @@ def struct_from_multiple_dataset(directory, method, parameters,
         
         list_by_size = []
         for size in sizes:
-            print("    Learning with", size, "data...", flush=True)
+            print("    Learning with", size, "data...")
             sample = data[0:size]
             bn = learning(sample, method, parameters)
             list_by_size.append(bn)
@@ -264,4 +267,4 @@ def write_struct(file, bn):
     for (head,tail) in bn.arcs():
         struct_str += names[head] + "->" + names[tail] + ';'
     with open(file, 'w') as f:
-        print(struct_str, file=f)
+        print(struct_str)

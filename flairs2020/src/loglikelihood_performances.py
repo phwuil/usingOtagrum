@@ -112,7 +112,7 @@ for f in files_in_directory:
     
     list_loglikelihoods = []
     for size in sizes:
-        print("    Learning with", size, "data...", flush=True)
+        print("    Learning with", size, "data...")
         train = data[0:size]
         test = data[-test_size:]
         
@@ -144,10 +144,13 @@ for f in files_in_directory:
 #            jointDistributions = []        
 #            for i in range(ndag.getSize()):
 #                d = 1 + ndag.getParents(i).getSize()
-#                K = TTest.GetK(len(sample), d)
-#                indices = [int(n) for n in ndag.getParents(i)]
-#                indices = [i] + indices
-#                bernsteinCopula = ot.EmpiricalBernsteinCopula(sample.getMarginal(indices), K, False)
+#                if d == 1:
+#                    bernsteinCopula = ot.Uniform(0.0, 1.0)
+#                else:
+#                    K = TTest.GetK(len(sample), d)
+#                    indices = [int(n) for n in ndag.getParents(i)]
+#                    indices = [i] + indices
+#                    bernsteinCopula = ot.EmpiricalBernsteinCopula(sample.getMarginal(indices), K, False)
 #                jointDistributions.append(bernsteinCopula)
 #                
 #            cbn = otagr.ContinuousBayesianNetwork(ndag, jointDistributions)
@@ -168,12 +171,13 @@ for f in files_in_directory:
             TTest = otagr.ContinuousTTest(train, alpha)
             jointDistributions = []        
             for i in range(order.getSize()):
-                d = 1+ndag.getParents(i).getSize()
-                print(d)
-                K = TTest.GetK(len(train), d)
-                indices = [int(n) for n in ndag.getParents(i)]
-                indices = [i] + indices
-                bernsteinCopula = ot.EmpiricalBernsteinCopula(ot.Sample(train).getMarginal(indices), K, False)
+                if d == 1:
+                    bernsteinCopula = ot.Uniform(0.0, 1.0)
+                else:
+                    K = TTest.GetK(len(sample), d)
+                    indices = [int(n) for n in ndag.getParents(i)]
+                    indices = [i] + indices
+                    bernsteinCopula = ot.EmpiricalBernsteinCopula(sample.getMarginal(indices), K, False)
                 jointDistributions.append(bernsteinCopula)
                 
             print("jD", jointDistributions)
@@ -242,10 +246,13 @@ np.savetxt(path.join(res_directory, title + ".csv"), results, fmt="%f", delimite
 #            jointDistributions = []        
 #            for i in range(order.getSize()):
 #                d = 1+ndag.getParents(i).getSize()
-#                K = TTest.GetK(len(train), d)
-#                indices = [int(n) for n in ndag.getParents(i)]
-#                indices = [i] + indices
-#                bernsteinCopula = ot.EmpiricalBernsteinCopula(ot.Sample(train).getMarginal(indices), k, False)
+#                if d == 1:
+#                    bernsteinCopula = ot.Uniform(0.0, 1.0)
+#                else:
+#                    K = TTest.GetK(len(sample), d)
+#                    indices = [int(n) for n in ndag.getParents(i)]
+#                    indices = [i] + indices
+#                    bernsteinCopula = ot.EmpiricalBernsteinCopula(sample.getMarginal(indices), K, False)
 #                jointDistributions.append(bernsteinCopula)
 #                
 #            cbn = otagr.ContinuousBayesianNetwork(ndag, jointDistributions)
