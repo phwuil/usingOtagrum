@@ -72,9 +72,9 @@ struct_directory = "../data/structures/"
 
 directory = path.join(directory, "loglikelihood")
 res_directory = "../results/"
-for d in directory.split('/'):
-    if d:
-        res_directory = path.join(res_directory, d)
+for rep in directory.split('/'):
+    if rep:
+        res_directory = path.join(res_directory, rep)
         if not path.isdir(res_directory):
             os.mkdir(res_directory)
 
@@ -143,10 +143,10 @@ for f in files_in_directory:
 #                if d == 1:
 #                    bernsteinCopula = ot.Uniform(0.0, 1.0)
 #                else:
-#                    K = TTest.GetK(len(sample), d)
+#                    K = TTest.GetK(len(train), d)
 #                    indices = [int(n) for n in ndag.getParents(i)]
 #                    indices = [i] + indices
-#                    bernsteinCopula = ot.EmpiricalBernsteinCopula(sample.getMarginal(indices), K, False)
+#                    bernsteinCopula = ot.EmpiricalBernsteinCopula(train.getMarginal(indices), K, False)
 #                jointDistributions.append(bernsteinCopula)
 #                
 #            cbn = otagr.ContinuousBayesianNetwork(ndag, jointDistributions)
@@ -168,21 +168,22 @@ for f in files_in_directory:
             TTest = otagr.ContinuousTTest(train, alpha)
             jointDistributions = []        
             for i in range(order.getSize()):
-                if d == 1:
+                dim = 1 + ndag.getParents(i).getSize()
+                if dim == 1:
                     bernsteinCopula = ot.Uniform(0.0, 1.0)
                 else:
-                    K = TTest.GetK(len(sample), d)
+                    K = TTest.GetK(len(train), dim)
                     indices = [int(n) for n in ndag.getParents(i)]
                     indices = [i] + indices
-                    bernsteinCopula = ot.EmpiricalBernsteinCopula(sample.getMarginal(indices), K, False)
+                    bernsteinCopula = ot.EmpiricalBernsteinCopula(train.getMarginal(indices), K, False)
                 jointDistributions.append(bernsteinCopula)
                 
             #print("jD", jointDistributions)
             cbn = otagr.ContinuousBayesianNetwork(ndag, jointDistributions)
             ll = 0
-            for d in test:
+            for data in test:
                 #print("contribution", cbn.computeLogPDF(d))
-                ll += cbn.computeLogPDF(d)
+                ll += cbn.computeLogPDF(data)
             ll /= len(test)
             list_loglikelihoods.append(ll)
             

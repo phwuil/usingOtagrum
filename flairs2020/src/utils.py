@@ -267,4 +267,4 @@ def write_struct(file, bn):
     for (head,tail) in bn.arcs():
         struct_str += names[head] + "->" + names[tail] + ';'
     with open(file, 'w') as f:
-        print(struct_str)
+        print(struct_str, file=f)

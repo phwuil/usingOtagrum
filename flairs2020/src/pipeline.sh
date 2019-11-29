@@ -19,8 +19,8 @@ sample_size=50000
 test_size=1000
 
 from_size=100
-to_size=5000
-n_sample=2
+to_size=20000
+n_sample=5
 n_restart=1
 
 from_n_node=2
