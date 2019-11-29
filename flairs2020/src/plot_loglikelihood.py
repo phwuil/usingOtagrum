@@ -15,7 +15,6 @@ import argparse
 
 CLI = argparse.ArgumentParser()
 CLI.add_argument("--method")
-CLI.add_argument("--mode")
 CLI.add_argument("--distribution")
 CLI.add_argument("--structure")
 CLI.add_argument("--from_size")
@@ -53,7 +52,6 @@ for d in directory.split('/'):
 
 if args.method == "cpc":
     res_file_name = '_'.join(["loglikelihood",
-                         args.mode,
                          args.method,
                          args.structure,
                          args.distribution,
@@ -65,7 +63,6 @@ if args.method == "cpc":
                                   'alpha', str(int(100*args.parameters[1]))])])
 elif args.method == "elidan":
     res_file_name = '_'.join(["loglikelihood",
-                         args.mode,
                          args.method,
                          args.structure,
                          args.distribution,
@@ -95,21 +92,21 @@ mean_ll, std_ll = res[1], res[2]
 #                  + ", MaxCondSet: " + max_condset
 
 
-curve, mode, method, structure, distribution, parameters = res_file_name.split('_')
+curve, method, structure, distribution, parameters = res_file_name.split('_')
 parameters = re.findall(r"\d+", parameters)
 
 if method == "cpc":
     from_size, to_size, n_sample, n_restart, max_condset, alpha = parameters
     fig_title = curve.capitalize() + " for " + method + " on " + distribution \
                   + " data " + "generated from " + structure + " network\n" \
-                  + "Mode: " + mode + ", Restarts: " + n_restart \
+                  + ", Restarts: " + n_restart \
                   + ", Alpha: " + str(int(alpha)/100) \
                   + ", MaxCondSet: " + max_condset
 elif method == "elidan":
     from_size, to_size, n_sample, n_restart, max_parents, hc_restart = parameters
     fig_title = curve.capitalize() + " for " + method + " on " + distribution \
                   + " data " + "generated from " + structure + " network\n" \
-                  + "Mode: " + mode + ", Restarts: " + n_restart \
+                  + ", Restarts: " + n_restart \
                   + ", HCRestarts: " + hc_restart \
                   + ", MaxParents: " + max_parents
 
@@ -123,7 +120,7 @@ ax.set_title(fig_title)
 alpha_t = 0.4
 
 ax.set_xlim([int(from_size), int(to_size)])
-ax.set_ylim(0.2,0.7)
+#ax.set_ylim(0.2,0.7)
 
 ax.plot(sizes, mean_ll)
 ut.plot_error(sizes, mean_ll, std_ll, alpha_t, ax=ax)
