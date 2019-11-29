@@ -20,7 +20,6 @@ import argparse
 
 CLI = argparse.ArgumentParser()
 CLI.add_argument("--method")
-CLI.add_argument("--mode")
 CLI.add_argument("--distribution")
 CLI.add_argument("--structure")
 CLI.add_argument("--from_size")
@@ -79,13 +78,7 @@ for d in directory.split('/'):
         if not path.isdir(res_directory):
             os.mkdir(res_directory)
 
-if args.mode == "unique":
-    data_file_name = '_'.join([structure, distribution, "sample_01"])
-    data_file = data_file_name + ".csv"
-elif args.mode == "multi":
-    data_file_name = '_'.join([structure, distribution])
-else:
-    print("Wrong entry for mode !")
+data_file_name = '_'.join([structure, distribution])
 
 Tstruct_file = args.structure + ".txt"
 Tstruct_file_name = args.structure
@@ -117,8 +110,9 @@ for f in files_in_directory:
         test = data[-test_size:]
         
         if method=="elidan":
-#            c, g, s = hc.hill_climbing(sample, parameters[0], parameters[1])
+#            c, g, s = hc.hill_climbing(train, parameters[0], parameters[1])
 #            list_loglikelihoods.append(sc.log_likelihood(test, c, g)/test.getSize())
+            
             kendall_tau = train.computeKendallTau()
             pearson_r = ot.CorrelationMatrix(np.sin((np.pi/2)*kendall_tau))
             
@@ -138,16 +132,18 @@ for f in files_in_directory:
             list_loglikelihoods.append(sc.log_likelihood(test, gaussian_copula, Tstruct)/test.getSize())
             
         elif method=="cpc":
-#            learner = otagr.ContinuousPC(sample, parameters[0], parameters[1])
+#            print("Learning structure")
+#            learner = otagr.ContinuousPC(train, parameters[0], parameters[1])
 #            ndag = learner.learnDAG()
-#            TTest = otagr.ContinuousTTest(sample, alpha)
+#            print("Learning parameters")
+#            TTest = otagr.ContinuousTTest(train, alpha)
 #            jointDistributions = []        
 #            for i in range(ndag.getSize()):
 #                d = 1 + ndag.getParents(i).getSize()
-#                K = TTest.GetK(len(sample), d)
+#                K = TTest.GetK(len(train), d)
 #                indices = [int(n) for n in ndag.getParents(i)]
 #                indices = [i] + indices
-#                bernsteinCopula = ot.EmpiricalBernsteinCopula(sample.getMarginal(indices), K, False)
+#                bernsteinCopula = ot.EmpiricalBernsteinCopula(train.getMarginal(indices), K, False)
 #                jointDistributions.append(bernsteinCopula)
 #                
 #            cbn = otagr.ContinuousBayesianNetwork(ndag, jointDistributions)
@@ -163,20 +159,21 @@ for f in files_in_directory:
 #                    count += 1
 #            ll /= count
 #            list_loglikelihoods.append(ll)
+            
             ndag = otagr.NamedDAG(Tstruct)
             order = ndag.getTopologicalOrder()
             TTest = otagr.ContinuousTTest(train, alpha)
             jointDistributions = []        
             for i in range(order.getSize()):
                 d = 1+ndag.getParents(i).getSize()
-                print(d)
+                #print(d)
                 K = TTest.GetK(len(train), d)
                 indices = [int(n) for n in ndag.getParents(i)]
                 indices = [i] + indices
                 bernsteinCopula = ot.EmpiricalBernsteinCopula(ot.Sample(train).getMarginal(indices), K, False)
                 jointDistributions.append(bernsteinCopula)
                 
-            print("jD", jointDistributions)
+            #print("jD", jointDistributions)
             cbn = otagr.ContinuousBayesianNetwork(ndag, jointDistributions)
             ll = 0
             for d in test:
@@ -198,12 +195,12 @@ sizes = sizes.reshape(n_samples,1)
 results = np.concatenate((sizes, ll_mean, ll_std), axis=1)
 
 if args.method == "cpc":
-    title = "loglikelihood_" + args.mode + "_cpc_" + data_file_name + "_" + "f" + str(from_size) + \
+    title = "loglikelihood_cpc_" + data_file_name + "_" + "f" + str(from_size) + \
             "t" + str(to_size) + "s" + str(n_samples) + "r" + str(n_restart) + \
             "mcss" + str(binNumber) + "alpha" + str(int(100*alpha))
             
 elif args.method == "elidan":
-    title = "loglikelihood_" + args.mode + "_elidan_" + data_file_name + "_" + "f" + str(from_size) + \
+    title = "loglikelihood_elidan_" + data_file_name + "_" + "f" + str(from_size) + \
             "t" + str(to_size) + "s" + str(n_samples) + "r" + str(n_restart) + \
             "mp" + str(max_parents) + "hcr" + str(n_restart_hc) 
 
