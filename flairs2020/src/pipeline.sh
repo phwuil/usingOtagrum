@@ -19,9 +19,9 @@ sample_size=50000
 test_size=1000
 
 from_size=100
-to_size=20000
-n_sample=21
-n_restart=5
+to_size=5000
+n_sample=2
+n_restart=1
 
 from_n_node=2
 to_n_node=22
@@ -197,24 +197,24 @@ if [ "$compute" = "loglikelihood" ] || [ "$compute" = "all" ]; then
     fi
 fi
 
-if [ "$compute" = "time" ] || [ "$compute" = "all" ]; then
-    if [ -f "$TIME_RES_DIR/$TIME_FILE_NAME.csv" ] && [ "$recompute" = "0" ]; then
-        echo "Result file for time complexity exists."
-    else
-        echo "Computing results for time complexity..."
-        python time_complexity.py --distribution=$distribution \
-                                  --sample_size=$sample_size_time \
-                                  --density=$density \
-                                  --correlation=$correlation \
-                                  --mcss=$mcss \
-                                  --alpha=$alpha \
-                                  --mp=$mp \
-                                  --hcr=$hcr \
-                                  --from_size=$from_n_node \
-                                  --to_size=$to_n_node \
-                                  --step=$node_step
-    fi
-fi
+#if [ "$compute" = "time" ] || [ "$compute" = "all" ]; then
+    #if [ -f "$TIME_RES_DIR/$TIME_FILE_NAME.csv" ] && [ "$recompute" = "0" ]; then
+        #echo "Result file for time complexity exists."
+    #else
+        #echo "Computing results for time complexity..."
+        #python time_complexity.py --distribution=$distribution \
+                                  #--sample_size=$sample_size_time \
+                                  #--density=$density \
+                                  #--correlation=$correlation \
+                                  #--mcss=$mcss \
+                                  #--alpha=$alpha \
+                                  #--mp=$mp \
+                                  #--hcr=$hcr \
+                                  #--from_size=$from_n_node \
+                                  #--to_size=$to_n_node \
+                                  #--step=$node_step
+    #fi
+#fi
 
 
 #####################################################################################
@@ -294,22 +294,22 @@ if [ "$compute" = "loglikelihood" ] || [ "$compute" = "all" ]; then
     fi
 fi
 
-if [ "$compute" = "time" ] || [ "$compute" = "all" ]; then
-    if [ -f "$TIME_FIG_DIR/$TIME_FILE_NAME.pdf" ] && [ "$replot" = "0" ]; then
-        echo "Figure file for time exists."
-    else
-        echo "Plotting figure for time complexity..."
-        python plot_time_complexity.py --distribution=$distribution \
-                                       --sample_size=$sample_size_time \
-                                       --density=$density \
-                                       --correlation=$correlation \
-                                       --mcss=$mcss \
-                                       --alpha=$alpha \
-                                       --mp=$mp \
-                                       --hcr=$hcr \
-                                       --from_size=$from_n_node \
-                                       --to_size=$to_n_node \
-                                       --step=$node_step
-    fi
-fi
+#if [ "$compute" = "time" ] || [ "$compute" = "all" ]; then
+    #if [ -f "$TIME_FIG_DIR/$TIME_FILE_NAME.pdf" ] && [ "$replot" = "0" ]; then
+        #echo "Figure file for time exists."
+    #else
+        #echo "Plotting figure for time complexity..."
+        #python plot_time_complexity.py --distribution=$distribution \
+                                       #--sample_size=$sample_size_time \
+                                       #--density=$density \
+                                       #--correlation=$correlation \
+                                       #--mcss=$mcss \
+                                       #--alpha=$alpha \
+                                       #--mp=$mp \
+                                       #--hcr=$hcr \
+                                       #--from_size=$from_n_node \
+                                       #--to_size=$to_n_node \
+                                       #--step=$node_step
+    #fi
+#fi
 
