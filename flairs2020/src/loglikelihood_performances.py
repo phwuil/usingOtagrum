@@ -181,9 +181,9 @@ for f in files_in_directory:
             #print("jD", jointDistributions)
             cbn = otagr.ContinuousBayesianNetwork(ndag, jointDistributions)
             ll = 0
-            for data in test:
+            for t in test:
                 #print("contribution", cbn.computeLogPDF(d))
-                ll += cbn.computeLogPDF(data)
+                ll += cbn.computeLogPDF(t)
             ll /= len(test)
             list_loglikelihoods.append(ll)
             
