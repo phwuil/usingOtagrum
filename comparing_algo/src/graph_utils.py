@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import otagrum as otagr
 import pyAgrum as gum
 import numpy as np
 
@@ -111,3 +112,34 @@ def dag_to_bn(dag, names):
         bn.addArc(arc[0], arc[1])
     
     return bn
+
+def fastNamedDAG(dotlike):
+    dag = gum.DAG()
+    names = []
+    for string in dotlike.split(';'):
+        if not string:
+            continue
+        print("String: {}".format(string))
+        lastId = 0
+        notfirst = False
+        for substring in string.split('->'):
+            print("Substring: {}".format(substring))
+            forward = True
+            for name in substring.split('<-'):
+                print("Name: {}".format(name))
+                if name not in names:
+                    idVar = dag.addNode()
+                    names.append(name)
+                else:
+                    idVar = names.index(name)
+                if notfirst:
+                    if forward:
+                        dag.addArc(lastId, idVar)
+                        forward = False
+                    else:
+                        dag.addArc(idVar, lastId)
+                else:
+                    notfirst = True
+                    forward = False
+                lastId = idVar
+    return otagr.NamedDAG(dag, names)
