@@ -278,14 +278,10 @@ class Pipeline:
         
     
     def loadLearnedStructures(self):
-        print("Loading learned structures", flush=True)
         sizes = np.linspace(self.begin_size, self.end_size, self.n_points, dtype=int)
-        print("Sizes OK", flush=True)
         parameters = '_'.join([str(v).replace('.','') for v in self.parameters.values()])
-        print("Parameters OK", flush=True)
         path = os.path.join(self.result_dir, 'structures',
                             self.method, parameters + '_' + self.result_domain_str)
-        print("Path OK", flush=True)
         list_structures = []
         for i in range(self.n_restart):
             list_by_size = []
@@ -293,10 +289,7 @@ class Pipeline:
                 name = 'sample' + str(i+1).zfill(2) + '_size' + str(size)
                 with open(os.path.join(path, name), 'r') as file:
                     arcs = file.read().replace('\n', '')
-                    print("Arcs: {}".format(arcs))
-                    print("Constructing BN")
                     ndag = gu.fastNamedDAG(arcs)
-                    print("BN done")
                     list_by_size.append(ndag)
             list_structures.append(list_by_size)
             
@@ -317,7 +310,6 @@ class Pipeline:
             return False
     
     def computeStructuralScore(self, score):
-        print("Starting to compute scores", flush=True)
         Path(os.path.join(self.result_dir, 'scores')).mkdir(parents=True, exist_ok=True)
         
         if self.structuralScoreExists(score):
@@ -325,18 +317,13 @@ class Pipeline:
         
         # Loading true structure
         Tstruct = self.load_struct()
-        print("True structure loaded", flush=True)
         
         # Learning structures on multiple dataset
         if self.structureFilesExist():
-            print("File exists", flush=True)
             list_structures = self.loadLearnedStructures()
-            print("File loaded", flush=True)
         else:
-            print("File doesn't exist", flush=True)
             list_structures = self.struct_from_multiple_dataset()
 
-        print("Structure learned", flush=True)
             
         # Setting sizes for which scores are computed
         sizes = np.linspace(self.begin_size, self.end_size, self.n_points, dtype=int)
@@ -344,14 +331,11 @@ class Pipeline:
         sizes = sizes.reshape(self.n_points, 1)
         
         # Computing structural scores
-        print("About to compute structural score", flush=True)
         scores = ut.structural_score(Tstruct, list_structures, score)
-        print("Scores have been computed", flush=True)
         mean = np.mean(scores, axis=1).reshape((len(scores),1))
         std = np.std(scores, axis=1).reshape((len(scores),1))
         results = np.concatenate((sizes, mean, std), axis=1)
 
-        print("Results have been computed", flush=True)
         
         # Writing results
         header = "Size, Mean, Std"
@@ -361,7 +345,7 @@ class Pipeline:
         res_file_name = '_'.join([score, self.method, parameters, suffix])        
         res_file = res_file_name + '.csv'
         
-        print("Writing results in ", os.path.join(self.result_dir, res_file))
+        print("Writing results in ", os.path.join(self.result_dir, "scores", res_file))
         np.savetxt(os.path.join(self.result_dir, "scores", res_file),
                        results, fmt="%f", delimiter=',', header=header)
         

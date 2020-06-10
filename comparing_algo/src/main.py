@@ -81,8 +81,6 @@ for structure in structures:
                 cpc.computeStructuralScore('skelF')
                 cpc.computeStructuralScore('hamming')
 
-                print("Score have been computed", flush=True)
-                
                 fig, ax = plt.subplots()
                 ax.set_xlabel('')
                 ax.set_ylabel('')
