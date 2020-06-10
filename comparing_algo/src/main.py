@@ -51,10 +51,6 @@ for structure in structures:
                         n_points[structure],
                         n_restart[structure])
 
-    cmiic_gaussian.setResultDirPrefix("./here")
-    cmiic_bernstein.setResultDirPrefix("./here")
-    cpc.setResultDirPrefix("./here")
-    
     for distribution in distributions:
         print('Distribution :', distribution)
         if distribution == 'gaussian' or distribution == 'student':
@@ -65,7 +61,6 @@ for structure in structures:
                                      structure,
                                      'r'+str(correlation).replace('.', ''))
                 Path(apath).mkdir(parents=True, exist_ok=True)
-                # c3off2_bernstein.setDataDistribution(distribution, r=correlation)
                 cmiic_gaussian.setDataDistribution(distribution, r=correlation)
                 cmiic_bernstein.setDataDistribution(distribution, r=correlation)
                 cpc.setDataDistribution(distribution, r=correlation)
@@ -85,6 +80,8 @@ for structure in structures:
                 print('cpc')
                 cpc.computeStructuralScore('skelF')
                 cpc.computeStructuralScore('hamming')
+
+                print("Score have been computed", flush=True)
                 
                 fig, ax = plt.subplots()
                 ax.set_xlabel('')

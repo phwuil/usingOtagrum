@@ -4,7 +4,7 @@
 import openturns as ot
 import otagrum as otagr
 import numpy as np
-from pyAgrum.lib.bn_vs_bn import GraphicalBNComparator
+import pyAgrum as gum
 import os
 import os.path as path
 import elidan.hill_climbing as hc
@@ -16,26 +16,33 @@ def structure_prospecting(structures, index):
         print(s.dag())
 
 def structural_score(true_structure, list_structures, score):
+    # print(type(true_structure),flush=True)
+    # print(type(list_structures[0]),flush=True)
+    ref_dag = true_structure.getDAG()
+    ref_names = [name for name in true_structure.getDescription()]
     result = []
     for l in list_structures:
         list_result = []
         for s in l: 
             #bn = named_dag_to_bn(s, Tstruct.names())
-            comparison = GraphicalBNComparator(true_structure, s)
+            test_dag = s.getDAG()
+            test_names = [name for name in s.getDescription()]
+            sc = gum.StructuralComparator()
+            sc.compare(ref_dag, ref_names, test_dag, test_names)
             if score == 'skelP':
-                scores = comparison.skeletonScores()['precision']
+                scores = sc.precision_skeleton()
             elif score == 'skelR':
-                scores = comparison.skeletonScores()['recall']
+                scores = sc.recall_skeleton()
             elif score == 'skelF':
-                scores = comparison.skeletonScores()['fscore']
+                scores = sc.f_score_skeleton()
             elif score == 'dagP':
-                scores = comparison.scores()['precision']
+                scores = sc.precision()
             elif score == 'dagR':
-                scores = comparison.scores()['recall']
+                scores = sc.recall()
             elif score == 'dagF':
-                scores = comparison.scores()['fscore']
+                scores = sc.f_score()
             elif score == 'hamming':
-                scores = comparison.hamming()['structural hamming']
+                scores = sc.shd()
             else:
                 print("Wrong entry for argument!")
             
