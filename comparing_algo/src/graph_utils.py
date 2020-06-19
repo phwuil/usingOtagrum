@@ -119,14 +119,11 @@ def fastNamedDAG(dotlike):
     for string in dotlike.split(';'):
         if not string:
             continue
-        print("String: {}".format(string))
         lastId = 0
         notfirst = False
         for substring in string.split('->'):
-            print("Substring: {}".format(substring))
             forward = True
             for name in substring.split('<-'):
-                print("Name: {}".format(name))
                 if name not in names:
                     idVar = dag.addNode()
                     names.append(name)

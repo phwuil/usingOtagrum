@@ -11,18 +11,45 @@ mpl.rc('text', usetex=True)
 mpl.rc('font', family='serif')
 mpl.rcParams.update({'font.size': 20})
 
+def get_domain(left, right):
+    if left%10!=0 or right%10!=0:
+        print("left and right must be multiples of 10!")
+    if left > right:
+        print("left must be less than right!")
+
+    a = 0
+    temp = left
+    while (temp%10) == 0:
+        temp = temp//10
+        a = a + 1
+
+    b = 0
+    temp = right
+    while (temp%10) == 0:
+        temp = temp/10
+        b = b + 1
+         
+    x = left
+    domain = [x]
+    while x < right:
+        while x < 10**(a+1) and x < right:
+            x = x + 10**a
+            domain.append(x)
+        a = a + 1
+    return domain
+
 distributions = ['gaussian', 'student', 'dirichlet']
 # distributions = ['student']
 structures = ['asia', 'alarm']
 # structures = ['alarm']
 
 size_min = {'asia':100, 'alarm':100}
-size_max = {'asia':300, 'alarm':200}
-n_points = {'asia':3, 'alarm': 2}
-n_restart = {'asia': 2, 'alarm':2}
+size_max = {'asia':10000, 'alarm':10000}
+n_points = {'asia':10, 'alarm': 10}
+n_restart = {'asia': 5, 'alarm':2}
 ylim = {'asia': 10, 'alarm':50}
 
-correlations = np.round(np.linspace(0.7, 0.8, 2), decimals=1)
+correlations = np.round(np.linspace(0.4, 0.8, 2), decimals=1)
 
 cmiic_gaussian = Pipeline('cmiic', cmode=cmi.CModeTypes_Gaussian, kmode=cmi.KModeTypes_Naive)
 cmiic_bernstein = Pipeline('cmiic', cmode=cmi.CModeTypes_Bernstein, kmode=cmi.KModeTypes_Naive)
