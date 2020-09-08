@@ -4,7 +4,7 @@
 
 import numpy as np
 import openturns as ot
-import cmiic.continuousMIIC as cmiic
+import otagrum
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -23,9 +23,9 @@ list_01_2 = []
 for size in sizes:
     data = data_vs[0:size]
     print('Size : ', size)
-    learner_vs = cmiic.ContinuousMIIC(data)
-    pdag_vs = learner_vs.learnMixedStructure()
-    dag_vs = learner_vs.learnStructure()
+    learner_vs = otagrum.ContinuousMIIC(data)
+    pdag_vs = learner_vs.learnPDAG()
+    dag_vs = learner_vs.learnDAG()
     cache = learner_vs.getIcache()
     
     I_01 = cache[(frozenset({0,1}), frozenset({}))]

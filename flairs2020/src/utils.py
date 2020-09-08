@@ -38,7 +38,7 @@ def named_dag_to_bn(ndag):
     names = ndag.getDescription()
     for name in names:
         bn.add(gum.LabelizedVariable(name))
-    for node in ndag.getNodes():
+    for node in range(ndag.getSize()):
         for child in ndag.getChildren(node):
             bn.addArc(names[node], names[child])
     return bn

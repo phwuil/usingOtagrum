@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 mpl.rc('text', usetex=True)  
 mpl.rc('font', family='serif')
 
+import pandas as pd
 import pyAgrum as gum
 import pyAgrum.lib.notebook as gnb
 import openturns as ot
@@ -17,6 +18,7 @@ import data_generation as dg
 import utils as ut
 import graph_utils as gu
 import plotting
+import time
 
 
 class DataGenerator:
@@ -224,29 +226,32 @@ class Pipeline:
             raise TypeError("cmiic method takes two arguments ({} given)".format(len(parameters)))
         elif self.method == 'cpc' and not len(parameters) == 2:
             raise TypeError("cpc method takes two arguments ({} given)".format(len(parameters)))
-        elif self.method == 'elidan' and not len(parameters) == 2:
+        elif self.method == 'elidan' and not len(parameters) == 3:
             raise TypeError("elidan method takes two arguments ({} given)".format(len(parameters)))
         else:
             self.parameters = parameters
             
     def load_struct(self):
-        with open(self.structure_dir + self.data_structure, 'r') as file:
-            arcs = file.read().replace('\n', '')
-        return gu.fastNamedDAG(arcs)
+        # with open(self.structure_dir + self.data_structure, 'r') as file:
+            # arcs = file.read().replace('\n', '')
+        # return gu.fastNamedDAG(arcs)
+        dag, names = gu.read_graph(self.structure_dir + self.data_structure + '.dot')
+        return otagr.NamedDAG(dag, names)
     
     def write_struct(self, file, ndag):
-        struct_str = ''
-        names = ndag.getDescription()
-        dag = ndag.getDAG()
+        gu.write_graph(ndag, file+'.dot')
+        # struct_str = ''
+        # names = ndag.getDescription()
+        # dag = ndag.getDAG()
         
-        for node in range(ndag.getSize()):
-            struct_str += names[node] + ';'
+        # for node in range(ndag.getSize()):
+            # struct_str += names[node] + ';'
             
-        for (head,tail) in dag.arcs():
-            struct_str += names[head] + "->" + names[tail] + ';'
+        # for (head,tail) in dag.arcs():
+            # struct_str += names[head] + "->" + names[tail] + ';'
         
-        with open(file, 'w') as f:
-            print(struct_str, file=f)
+        # with open(file, 'w') as f:
+            # print(struct_str, file=f)
     
     def loadData(self, path):
         data = ot.Sample.ImportFromTextFile(path, ',')
@@ -263,7 +268,8 @@ class Pipeline:
                            str(self.parameters['alpha']).replace('.', '') + '_'
         elif self.method == "elidan":
             result_name += '_' + str(self.parameters['max_parents']) + '_' + \
-                           str(self.parameters['hc_restart']) + '_'
+                           str(self.parameters['hc_restart']) + '_' + \
+                           str(self.parameters['cmode']) + '_'
         elif self.method == "cmiic":
             result_name += '_' + str(self.parameters['cmode']) + "_" + \
                            str(self.parameters['kmode']) + '_'
@@ -287,10 +293,13 @@ class Pipeline:
             list_by_size = []
             for size in sizes:
                 name = 'sample' + str(i+1).zfill(2) + '_size' + str(size)
-                with open(os.path.join(path, name), 'r') as file:
-                    arcs = file.read().replace('\n', '')
-                    ndag = gu.fastNamedDAG(arcs)
-                    list_by_size.append(ndag)
+                dag, var_names = gu.read_graph(os.path.join(path, name + '.dot'))
+                ndag = otagr.NamedDAG(dag, var_names)
+                list_by_size.append(ndag)
+                # with open(os.path.join(path, name + '.dot'), 'r') as file:
+                    # arcs = file.read().replace('\n', '')
+                    # ndag = gu.fastNamedDAG(arcs)
+                    # list_by_size.append(ndag)
             list_structures.append(list_by_size)
             
         return np.reshape(list_structures, (self.n_restart, self.n_points)).transpose()
@@ -355,7 +364,9 @@ class Pipeline:
                                          self.parameters['binNumber'],
                                          self.parameters['alpha'])
         
+            start = time.time()
             ndag = learner.learnDAG()
+            end = time.time()
         
             TTest = otagr.ContinuousTTest(sample, self.parameters['alpha'])
             jointDistributions = []        
@@ -374,9 +385,13 @@ class Pipeline:
             #print(sample.getDescription())
             max_parents = self.parameters['max_parents']
             n_restart_hc = self.parameters['hc_restart']
-            copula, dag = hc.hill_climbing(sample, max_parents, n_restart_hc)[0:2]
+            cmode = self.parameters['cmode']
+            learner = otagr.TabuList(sample, max_parents, n_restart_hc, 5)
+            learner.setCMode(cmode)
+            start = time.time()
+            ndag = learner.learnDAG()
+            end = time.time()
             #bn = dag_to_bn(dag, Tstruct.names())
-            ndag = otagr.NamedDAG(dag, sample.getDescription())
             
         elif self.method == "cmiic":
             cmode = self.parameters['cmode']
@@ -386,19 +401,24 @@ class Pipeline:
             learner.setKMode(kmode)
             learner.setAlpha(self.kalpha)
             # learner.setBeta(self.kbeta)
+            start = time.time()
             ndag = learner.learnDAG()
+            end = time.time()
             # bn = gu.named_dag_to_bn(ndag)
             
         else:
             print("Wrong entry for method argument !")
         
-        return ndag
+        return ndag, end-start
 
     def struct_from_multiple_dataset(self):
         parameters = '_'.join([str(v).replace('.','') for v in self.parameters.values()])
-        path = os.path.join(self.result_dir, 'structures', self.method,
+        struct_path = os.path.join(self.result_dir, 'structures', self.method,
                             parameters + '_' + self.result_domain_str)
-        Path(path).mkdir(parents=True, exist_ok=True)
+        time_path = os.path.join(self.result_dir, 'times', self.method,
+                            parameters + '_' + self.result_domain_str)
+        Path(struct_path).mkdir(parents=True, exist_ok=True)
+        Path(time_path).mkdir(parents=True, exist_ok=True)
         # Looking for which size we learn
         sizes = np.linspace(self.begin_size, self.end_size, self.n_points, dtype=int)
     
@@ -416,19 +436,41 @@ class Pipeline:
             data = (data.rank()+1)/(data.getSize()+2)
         
             list_by_size = []
+            times = []
             for size in sizes:
                 print("    Learning with", size, "data...")
                 sample = data[0:size]
-                ndag = self.learning(sample)
-                self.write_struct(os.path.join(path, f_name + '_size' + str(size)), ndag)
+                ndag, deltaT = self.learning(sample)
+                print("    Time elapsed: ", deltaT)
+                self.write_struct(os.path.join(struct_path, f_name + '_size' + str(size)), ndag)
                 list_by_size.append(ndag)
+                times.append(deltaT)
 
+            self.write_times(os.path.join(time_path, f_name + '_size' + str(size)), times)
             list_structures.append(list_by_size)
     
         # Transposing result matrix
         list_structures = np.reshape(list_structures, (self.n_restart, self.n_points)).transpose()
         
         return list_structures
+
+    def write_times(self, file_name, times):
+        sizes = np.linspace(self.begin_size, self.end_size, self.n_points, dtype=int)
+        sizes = sizes.reshape(self.n_points, 1)
+        times = np.array(times).reshape(self.n_points, 1)
+        results = np.concatenate((sizes, times), axis=1)
+        
+        # Writing results
+        header = "Size, Time"
+        # parameters = '_'.join([str(v).replace('.','') for v in self.parameters.values()])
+        # suffix = ''.join(['f', str(self.begin_size), 't', str(self.end_size),
+                          # 'np', str(self.n_points), 'r', str(self.n_restart)])
+        # res_file_name = '_'.join([self.method, parameters, suffix])        
+        # res_file = res_file_name + '.csv'
+        
+        print("Writing results in ", file_name + '.csv')
+        np.savetxt(file_name + '.csv', results, fmt="%f", delimiter=',', header=header, comments='')
+
     
     def plotScore(self, score, fig, ax, error=False, **kwargs):
         Path(os.path.join(self.figure_dir, 'scores')).mkdir(parents=True, exist_ok=True)
@@ -449,5 +491,35 @@ class Pipeline:
         ax.errorbar(sizes, mean, std, capsize=5, elinewidth=2, **kwargs)
         if error == True:
             plotting.plot_error(sizes, mean, std, alpha_t, ax=ax, color=kwargs['color'])
+        
+        ax.legend()
+
+    def plotTime(self, fig, ax, error=False, **kwargs):
+        Path(os.path.join(self.figure_dir, 'times')).mkdir(parents=True, exist_ok=True)
+        times_dir = os.path.join(self.result_dir, "times", self.method)
+
+        parameters = '_'.join([str(v).replace('.','') for v in self.parameters.values()])
+        suffix = ''.join(['f', str(self.begin_size), 't', str(self.end_size),
+                          'np', str(self.n_points), 'r', str(self.n_restart)])
+        times_dir = os.path.join(times_dir, '_'.join([parameters, suffix]))
+        print(times_dir)
+        
+        
+        result_files = os.listdir(times_dir)
+        results = []
+        for rf in result_files:
+            results.append(pd.read_csv(os.path.join(times_dir, rf), delimiter=',', index_col=0, header=0))
+        df = pd.DataFrame()
+        for r in results:
+            df = pd.concat([df, r], axis=1, sort=False)
+        mean = np.array(df.mean(axis=1))
+        std = np.array(df.std(axis=1))
+        sizes = np.array(df.index)
+        
+        # sizes = res[0].astype(int)
+        # mean, std = res[1], res[2]
+
+        # mean.plot(ax=ax)
+        ax.errorbar(sizes, mean, std, capsize=5, elinewidth=2, **kwargs)
         
         ax.legend()

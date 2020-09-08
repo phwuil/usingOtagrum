@@ -42,6 +42,9 @@ def structural_score(true_structure, list_structures, score):
             elif score == 'dagF':
                 scores = sc.f_score()
             elif score == 'hamming':
+                ref_cpdag = gu.dag_to_cpdag(ref_dag)
+                test_cpdag = gu.dag_to_cpdag(test_dag)
+                sc.compare(ref_cpdag, ref_names, test_cpdag, test_names)
                 scores = sc.shd()
             else:
                 print("Wrong entry for argument!")

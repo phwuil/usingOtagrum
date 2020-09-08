@@ -3,6 +3,7 @@
 import otagrum as otagr
 import pyAgrum as gum
 import numpy as np
+import pydotplus as dot
 
 def find_neighbor(G, max_parents=4):
     for i in G.nodes():
@@ -140,3 +141,124 @@ def fastNamedDAG(dotlike):
                     forward = False
                 lastId = idVar
     return otagr.NamedDAG(dag, names)
+
+def dag_to_cpdag(dag):
+    cpdag = gum.MixedGraph()
+
+    for node in dag.nodes():
+        cpdag.addNodeWithId(node)
+
+    for arc in dag.arcs():
+        cpdag.addArc(arc[0], arc[1])
+
+    v = []
+    while True:
+        v.clear()
+        for x in dag.topologicalOrder():
+            for y in cpdag.children(x):
+                if not strongly_protected(cpdag, x, y):
+                    v.append((x,y))
+        for arc in v:
+            cpdag.eraseArc(arc[0], arc[1])
+            cpdag.addEdge(arc[0], arc[1])
+        if len(v) <=0:
+            break
+
+    return cpdag
+
+def strongly_protected(mixed_graph, node1, node2):
+    if len(mixed_graph.parents(node1) - mixed_graph.parents(node2)) > 0:
+        return True
+
+    cs = set()
+    for node3 in mixed_graph.parents(node2):
+        if node3 == node1:
+            continue
+        if not mixed_graph.existsEdge(node3, node1):
+            return True
+        else:
+            cs.add(node3)
+
+    ss = cs.copy()
+    if len(cs) < 2:
+        return False
+    else:
+        for i in cs:
+            ss = ss - mixed_graph.neighbours(i)
+            if len(ss) < 2:
+                return False
+        return True
+
+def write_graph(graph, file_name="output.dot"):
+    with open(file_name, 'w') as fo:
+        fo.write(graph.toDot())
+
+def read_graph(file_name):
+    print("Loading file {}".format(file_name))
+    dot_graph = dot.graph_from_dot_file(file_name)
+    isUndiGraph = False
+
+    # Cleaning nodes
+    for node in dot_graph.get_nodes():
+        name = node.get_name()
+        if name in ['node', 'edge']:
+            if name == 'edge':
+                if node.get_attributes() and node.get_attributes()['dir'] == 'none':
+                    isUndiGraph = True
+            dot_graph.del_node(node)
+
+    # Getting node names
+    node_name_map = {}
+    for i,node in enumerate(dot_graph.get_nodes()):
+        node_name_map[node.get_name()] = i
+    if node_name_map:
+        nodeId = max(node_name_map.values()) + 1
+    else:
+        nodeId = 0
+    for edge in dot_graph.get_edges():
+        source = edge.get_source()
+        destination = edge.get_destination()
+        if source not in node_name_map.keys():
+            node_name_map[source] = nodeId
+            nodeId += 1
+        if destination not in node_name_map.keys():
+            node_name_map[destination] = nodeId
+            nodeId += 1
+
+    edges = []
+    arcs = []
+    for edge in dot_graph.get_edges():
+        if (isUndiGraph or
+                (edge.get_attributes() and edge.get_attributes()['dir'] == 'none')):
+            edges.append(gum.Edge(node_name_map[edge.get_source()],
+                                  node_name_map[edge.get_destination()]))
+        else:
+            arcs.append(gum.Arc(node_name_map[edge.get_source()],
+                                node_name_map[edge.get_destination()]))
+
+    if not edges: # DAG
+        graph = gum.DAG()
+        for node_name in node_name_map:
+            graph.addNodeWithId(node_name_map[node_name])
+        for arc in arcs:
+            graph.addArc(arc.tail(), arc.head())
+            
+    elif not arcs: # UndiGraph
+        graph = gum.UndiGraph()
+        for node_name in node_name_map:
+            graph.addNodeWithId(node_name_map[node_name])
+        for edge in edges:
+            graph.addEdge(edge.first(), edge.second())
+
+    else: # MixedGraph
+        graph = gum.MixedGraph()
+        for node_name in node_name_map:
+            graph.addNodeWithId(node_name_map[node_name])
+        for edge in edges:
+            graph.addEdge(edge.first(), edge.second())
+        for arc in arcs:
+            graph.addArc(arc.tail(), arc.head())
+
+    # Since python3.7, dict are insertion ordered so
+    # just returning values should be fine but we never know !
+    return graph, list(node_name_map.keys())
