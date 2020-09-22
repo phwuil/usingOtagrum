@@ -240,22 +240,9 @@ class Pipeline:
     
     def write_struct(self, file, ndag):
         gu.write_graph(ndag, file+'.dot')
-        # struct_str = ''
-        # names = ndag.getDescription()
-        # dag = ndag.getDAG()
-        
-        # for node in range(ndag.getSize()):
-            # struct_str += names[node] + ';'
-            
-        # for (head,tail) in dag.arcs():
-            # struct_str += names[head] + "->" + names[tail] + ';'
-        
-        # with open(file, 'w') as f:
-            # print(struct_str, file=f)
     
     def loadData(self, path):
         data = ot.Sample.ImportFromTextFile(path, ',')
-        # return data
         return (data.rank()+1)/(data.getSize()+2)
     
     def structuralScoreExists(self, score):
@@ -368,18 +355,18 @@ class Pipeline:
             ndag = learner.learnDAG()
             end = time.time()
         
-            TTest = otagr.ContinuousTTest(sample, self.parameters['alpha'])
-            jointDistributions = []        
-            for i in range(ndag.getSize()):
-                d = 1+ndag.getParents(i).getSize()
-                if d == 1:
-                    bernsteinCopula = ot.Uniform(0.0, 1.0)
-                else:
-                    K = TTest.GetK(len(sample), d)
-                    indices = [int(n) for n in ndag.getParents(i)]
-                    indices = [i] + indices
-                    bernsteinCopula = ot.EmpiricalBernsteinCopula(sample.getMarginal(indices), K, False)
-                jointDistributions.append(bernsteinCopula)
+            # TTest = otagr.ContinuousTTest(sample, self.parameters['alpha'])
+            # jointDistributions = []        
+            # for i in range(ndag.getSize()):
+                # d = 1+ndag.getParents(i).getSize()
+                # if d == 1:
+                    # bernsteinCopula = ot.Uniform(0.0, 1.0)
+                # else:
+                    # K = TTest.GetK(len(sample), d)
+                    # indices = [int(n) for n in ndag.getParents(i)]
+                    # indices = [i] + indices
+                    # bernsteinCopula = ot.EmpiricalBernsteinCopula(sample.getMarginal(indices), K, False)
+                # jointDistributions.append(bernsteinCopula)
     
         elif self.method == "elidan":
             #print(sample.getDescription())
@@ -488,7 +475,7 @@ class Pipeline:
         mean, std = res[1], res[2]
 
         alpha_t = 0.4
-        ax.errorbar(sizes, mean, std, capsize=5, elinewidth=2, **kwargs)
+        ax.errorbar(sizes, mean, std, capsize=2, elinewidth=1.25, **kwargs)
         if error == True:
             plotting.plot_error(sizes, mean, std, alpha_t, ax=ax, color=kwargs['color'])
         
@@ -520,6 +507,6 @@ class Pipeline:
         # mean, std = res[1], res[2]
 
         # mean.plot(ax=ax)
-        ax.errorbar(sizes, mean, std, capsize=5, elinewidth=2, **kwargs)
+        ax.errorbar(sizes, mean, std, capsize=2, elinewidth=1.25, **kwargs)
         
         ax.legend()
