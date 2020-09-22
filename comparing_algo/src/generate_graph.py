@@ -8,10 +8,10 @@ import graph_utils as gu
 
 from pathlib import Path
 
-step = 10
-start_size = 2
-end_size = 102
-restart = 2
+step = 1
+start_size = 7
+end_size = 7
+restart = 1
 
 density = 1.2
 
