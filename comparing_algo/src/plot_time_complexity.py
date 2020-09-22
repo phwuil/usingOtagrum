@@ -2,10 +2,13 @@
 # -*- coding: utf-8 -*-
 
 import matplotlib as mpl
+import matplotlib.ticker as ticker
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
+from matplotlib.ticker import ScalarFormatter
 mpl.rc('text', usetex=True)  
 mpl.rc('font', family='serif')
+mpl.rcParams.update({'font.size': 16})
 
 import numpy as np
 import pandas as pd
@@ -13,18 +16,38 @@ from pathlib import Path
 import os
 import re
 
-def combined_mean(m1, n1, m2, n2):
-    return (n1*m1 + n2*m2)/(n1 + n2)
+def combined_mean(m, n):
+    m = np.array(m)
+    n = np.array(n)
+    return np.inner(m,n)/n.sum()
 
-def combined_var(m1, v1, n1, m2, v2, n2):
-    m = combined_mean(m1, n1, m2, n2)
-    return (n1*(v1 + (m1 - m)**2) + n2*(v2 + (m2 - m)**2))/(n1 + n2)
+def combined_var(m, v, n):
+    m = np.array(m)
+    v = np.array(v)
+    n = np.array(n)
+    cm = combined_mean(m, n)
+    mu2 = (m - cm)**2
+    product =  np.inner(n, v + mu2)/n.sum()
+    return product
 
-def combined_std(m1, v1, n1, m2, v2, n2):
-    return np.sqrt(combined_var(m1, v1, n1, m2, v2, n2))
+def combined_std(m, v, n):
+    return np.sqrt(combined_var(m, v, n))
+
+def combined_var_df(m, v):
+    n = np.full(m.shape[1], 5)
+    cm = m.apply(lambda x:combined_mean(x, np.full(len(x), 5)), axis=1)
+    mu2 = (np.subtract(m.T, cm)**2).T
+    s = np.add(v, mu2)
+    f = s.apply(lambda x:np.inner(x, n), axis=1)
+    d = f/n.sum()
+    return d
+
+def combined_std_df(m, v):
+    return np.sqrt(combined_var_df(m, v))
 
 # sizes = [2]
 sizes = [2, 7, 12, 17, 22, 27, 32, 37, 42, 47, 52, 62, 72, 82, 92, 102]
+# sizes = [2, 7, 12, 17, 22, 27, 32, 37, 42, 47, 52]
 # sizes = [2, 7, 12, 17, 22, 27, 32, 37, 42, 47, 52]
 distribution = "dirichlet"
 results_dir = Path("../results")
@@ -61,11 +84,11 @@ for size in sizes:
     print(size)
 
     cpc_time_str = 'size_' + str(size).zfill(3) + '_0*' + '/times/cpc/5_005_f*t*np*r5/*.csv'
-    # cpc_time_str = 'size_'+str(size).zfill(3)+'/r08/times/cpc/5_005_f100t10000np10r5/*.csv'
+    # cpc_time_str = 'size_'+str(size).zfill(3) + '_0*' +'/r08/times/cpc/5_005_f100t10000np10r5/*.csv'
     cpc_fscore_str = 'size_' + str(size).zfill(3) + '_0*' + '/scores/skelF_cpc_5_005_f*t*np*r5.csv'
-    # cpc_fscore_str = 'size_' + str(size).zfill(3) + '/r08/scores/skelF_cpc_5_005_f*t*np*r5.csv'
+    # cpc_fscore_str = 'size_' + str(size).zfill(3) + '_0*'  + '/r08/scores/skelF_cpc_5_005_f*t*np*r5.csv'
     cpc_hamming_str = 'size_' + str(size).zfill(3) + '_0*' + '/scores/hamming_cpc_5_005_f*t*np*r5.csv'
-    # cpc_hamming_str = 'size_' + str(size).zfill(3) + '/r08/scores/hamming_cpc_5_005_f*t*np*r5.csv'
+    # cpc_hamming_str = 'size_' + str(size).zfill(3) + '_0*'  + '/r08/scores/hamming_cpc_5_005_f*t*np*r5.csv'
 
     cpc_time_files = sorted(results_dir.joinpath(distribution).glob(cpc_time_str))
     cpc_fscore_file = sorted(results_dir.joinpath(distribution).glob(cpc_fscore_str))
@@ -96,8 +119,9 @@ for size in sizes:
     cpc_fscore_std_df = pd.DataFrame()
     for r in results_cpc_fscore_std:
         cpc_fscore_std_df = pd.concat([cpc_fscore_std_df, r], axis=1, sort=False)
-    mean = cpc_fscore_mean_df.mean(axis=1)
-    std = cpc_fscore_std_df.std(axis=1)
+    mean = cpc_fscore_mean_df.apply(lambda x:combined_mean(x, np.full(len(x), 5)),
+                                    axis=1)
+    std = combined_std_df(cpc_fscore_mean_df, cpc_fscore_std_df**2)
     cpc_fscore_mean = pd.concat([cpc_fscore_mean, mean], axis=1, sort=False)
     cpc_fscore_std = pd.concat([cpc_fscore_std, std], axis=1, sort=False)
 
@@ -113,34 +137,31 @@ for size in sizes:
     cpc_hamming_std_df = pd.DataFrame()
     for r in results_cpc_hamming_std:
         cpc_hamming_std_df = pd.concat([cpc_hamming_std_df, r], axis=1, sort=False)
-    mean = cpc_hamming_mean_df.mean(axis=1)
-    std = cpc_hamming_std_df.std(axis=1)
+    mean = cpc_hamming_mean_df.apply(lambda x:combined_mean(x, np.full(len(x), 5)),
+                                    axis=1)
+    std = combined_std_df(cpc_hamming_mean_df, cpc_hamming_std_df**2)
     cpc_hamming_mean = pd.concat([cpc_hamming_mean, mean], axis=1, sort=False)
     cpc_hamming_std = pd.concat([cpc_hamming_std, std], axis=1, sort=False)
 
     cbic_time_str = 'size_'+str(size).zfill(3)+ '_0*' + '/times/elidan/4_5_0_f*t*np*r5/*.csv'
-    # cbic_time_str = 'size_'+str(size).zfill(3)+'/r08/times/elidan/4_5_0_f100t10000np10r5/*.csv'
+    # cbic_time_str = 'size_'+str(size).zfill(3) + '_0*' +'/r08/times/elidan/4_5_0_f100t10000np10r5/*.csv'
     cbic_fscore_str = 'size_'+str(size).zfill(3)+ '_0*' + '/scores/skelF_elidan_4_5_0_f*t*np*r5.csv'
-    # cbic_fscore_str = 'size_'+str(size).zfill(3)+'/r08/scores/skelF_elidan_4_5_0_f*t*np*r5.csv'
+    # cbic_fscore_str = 'size_'+str(size).zfill(3) + '_0*' +'/r08/scores/skelF_elidan_4_5_0_f*t*np*r5.csv'
     cbic_hamming_str = 'size_'+str(size).zfill(3)+ '_0*' + '/scores/hamming_elidan_4_5_0_f*t*np*r5.csv'
-    # cbic_hamming_str = 'size_'+str(size).zfill(3)+'/r08/scores/hamming_elidan_4_5_0_f*t*np*r5.csv'
+    # cbic_hamming_str = 'size_'+str(size).zfill(3) + '_0*' +'/r08/scores/hamming_elidan_4_5_0_f*t*np*r5.csv'
 
     cbic_time_files = sorted(results_dir.joinpath(distribution).glob(cbic_time_str))
     cbic_fscore_file = sorted(results_dir.joinpath(distribution).glob(cbic_fscore_str))
     cbic_hamming_file = sorted(results_dir.joinpath(distribution).glob(cbic_hamming_str))
 
-    results_cbic_time_mean = []
-    results_cbic_time_std = []
+    results_cbic_time = []
     for f in cbic_time_files:
-        results_cbic_time_mean.append(pd.read_csv(f, delimiter=',', index_col=0, header=0))
-    cbic_time_mean_df = pd.DataFrame()
-    for r in results_cbic_time_mean:
-        cbic_time_mean_df = pd.concat([cbic_time_mean_df, r], axis=1, sort=False)
-    cbic_time_std_df = pd.DataFrame()
-    for r in results_cbic_time_std:
-        cbic_time_std_df = pd.concat([cbic_time_std_df, r], axis=1, sort=False)
-    mean = cbic_time_mean_df.mean(axis=1)
-    std = cbic_time_std_df.std(axis=1)
+        results_cbic_time.append(pd.read_csv(f, delimiter=',', index_col=0, header=0))
+    cbic_time_df = pd.DataFrame()
+    for r in results_cbic_time:
+        cbic_time_df = pd.concat([cbic_time_df, r], axis=1, sort=False)
+    mean = cbic_time_df.mean(axis=1)
+    std = cbic_time_df.std(axis=1)
     cbic_time_mean = pd.concat([cbic_time_mean, mean], axis=1, sort=False)
     cbic_time_std = pd.concat([cbic_time_std, std], axis=1, sort=False)
 
@@ -156,8 +177,9 @@ for size in sizes:
     cbic_fscore_std_df = pd.DataFrame()
     for r in results_cbic_fscore_std:
         cbic_fscore_std_df = pd.concat([cbic_fscore_std_df, r], axis=1, sort=False)
-    mean = cbic_fscore_mean_df.mean(axis=1)
-    std = cbic_fscore_std_df.std(axis=1)
+    mean = cbic_fscore_mean_df.apply(lambda x:combined_mean(x, np.full(len(x), 5)),
+                                    axis=1)
+    std = combined_std_df(cbic_fscore_mean_df, cbic_fscore_std_df**2)
     cbic_fscore_mean = pd.concat([cbic_fscore_mean, mean], axis=1, sort=False)
     cbic_fscore_std = pd.concat([cbic_fscore_std, std], axis=1, sort=False)
 
@@ -173,35 +195,32 @@ for size in sizes:
     cbic_hamming_std_df = pd.DataFrame()
     for r in results_cbic_hamming_std:
         cbic_hamming_std_df = pd.concat([cbic_hamming_std_df, r], axis=1, sort=False)
-    mean = cbic_hamming_mean_df.mean(axis=1)
-    std = cbic_hamming_std_df.std(axis=1)
+    mean = cbic_hamming_mean_df.apply(lambda x:combined_mean(x, np.full(len(x), 5)),
+                                    axis=1)
+    std = combined_std_df(cbic_hamming_mean_df, cbic_hamming_std_df**2)
     cbic_hamming_mean = pd.concat([cbic_hamming_mean, mean], axis=1, sort=False)
     cbic_hamming_std = pd.concat([cbic_hamming_std, std], axis=1, sort=False)
 
 
     gmiic_time_str = 'size_'+str(size).zfill(3)+ '_0*' + '/times/cmiic/0_1_f*t*np*r5/*.csv'
-    # gmiic_time_str = 'size_'+str(size).zfill(3)+'/r08/times/cmiic/0_1_f100t10000np10r5/*.csv'
+    # gmiic_time_str = 'size_'+str(size).zfill(3) + '_0*' +'/r08/times/cmiic/0_1_f100t10000np10r5/*.csv'
     gmiic_fscore_str = 'size_'+str(size).zfill(3)+ '_0*' + '/scores/skelF_cmiic_0_1_f*t*np*r5.csv'
-    # gmiic_fscore_str = 'size_'+str(size).zfill(3)+'/r08/scores/skelF_cmiic_0_1_f*t*np*r5.csv'
+    # gmiic_fscore_str = 'size_'+str(size).zfill(3) + '_0*' +'/r08/scores/skelF_cmiic_0_1_f*t*np*r5.csv'
     gmiic_hamming_str = 'size_'+str(size).zfill(3)+ '_0*' + '/scores/hamming_cmiic_0_1_f*t*np*r5.csv'
-    # gmiic_hamming_str = 'size_'+str(size).zfill(3)+'/r08/scores/hamming_cmiic_0_1_f*t*np*r5.csv'
+    # gmiic_hamming_str = 'size_'+str(size).zfill(3) + '_0*' +'/r08/scores/hamming_cmiic_0_1_f*t*np*r5.csv'
 
     gmiic_time_files = sorted(results_dir.joinpath(distribution).glob(gmiic_time_str))
     gmiic_fscore_file = sorted(results_dir.joinpath(distribution).glob(gmiic_fscore_str))
     gmiic_hamming_file = sorted(results_dir.joinpath(distribution).glob(gmiic_hamming_str))
 
-    results_gmiic_time_mean = []
-    results_gmiic_time_std = []
+    results_gmiic_time = []
     for f in gmiic_time_files:
-        results_gmiic_time_mean.append(pd.read_csv(f, delimiter=',', index_col=0, header=0))
-    gmiic_time_mean_df = pd.DataFrame()
-    for r in results_gmiic_time_mean:
-        gmiic_time_mean_df = pd.concat([gmiic_time_mean_df, r], axis=1, sort=False)
-    gmiic_time_std_df = pd.DataFrame()
-    for r in results_gmiic_time_std:
-        gmiic_time_std_df = pd.concat([gmiic_time_std_df, r], axis=1, sort=False)
-    mean = gmiic_time_mean_df.mean(axis=1)
-    std = gmiic_time_std_df.std(axis=1)
+        results_gmiic_time.append(pd.read_csv(f, delimiter=',', index_col=0, header=0))
+    gmiic_time_df = pd.DataFrame()
+    for r in results_gmiic_time:
+        gmiic_time_df = pd.concat([gmiic_time_df, r], axis=1, sort=False)
+    mean = gmiic_time_df.mean(axis=1)
+    std = gmiic_time_df.std(axis=1)
     gmiic_time_mean = pd.concat([gmiic_time_mean, mean], axis=1, sort=False)
     gmiic_time_std = pd.concat([gmiic_time_std, std], axis=1, sort=False)
 
@@ -217,8 +236,9 @@ for size in sizes:
     gmiic_fscore_std_df = pd.DataFrame()
     for r in results_gmiic_fscore_std:
         gmiic_fscore_std_df = pd.concat([gmiic_fscore_std_df, r], axis=1, sort=False)
-    mean = gmiic_fscore_mean_df.mean(axis=1)
-    std = gmiic_fscore_std_df.std(axis=1)
+    mean = gmiic_fscore_mean_df.apply(lambda x:combined_mean(x, np.full(len(x), 5)),
+                                    axis=1)
+    std = combined_std_df(gmiic_fscore_mean_df, gmiic_fscore_std_df**2)
     gmiic_fscore_mean = pd.concat([gmiic_fscore_mean, mean], axis=1, sort=False)
     gmiic_fscore_std = pd.concat([gmiic_fscore_std, std], axis=1, sort=False)
 
@@ -234,33 +254,31 @@ for size in sizes:
     gmiic_hamming_std_df = pd.DataFrame()
     for r in results_gmiic_hamming_std:
         gmiic_hamming_std_df = pd.concat([gmiic_hamming_std_df, r], axis=1, sort=False)
-    mean = gmiic_hamming_mean_df.mean(axis=1)
-    std = gmiic_hamming_std_df.std(axis=1)
+    mean = gmiic_hamming_mean_df.apply(lambda x:combined_mean(x, np.full(len(x), 5)),
+                                    axis=1)
+    std = combined_std_df(gmiic_hamming_mean_df, gmiic_hamming_std_df**2)
     gmiic_hamming_mean = pd.concat([gmiic_hamming_mean, mean], axis=1, sort=False)
     gmiic_hamming_std = pd.concat([gmiic_hamming_std, std], axis=1, sort=False)
 
 
     bmiic_time_str = 'size_'+str(size).zfill(3)+ '_0*' + '/times/cmiic/1_1_f*t*np*r5/*.csv'
-    # bmiic_time_str = 'size_'+str(size).zfill(3)+'/r08/times/cmiic/1_1_f100t10000np10r5/*.csv'
+    # bmiic_time_str = 'size_'+str(size).zfill(3) + '_0*' +'/r08/times/cmiic/1_1_f100t10000np10r5/*.csv'
     bmiic_fscore_str = 'size_'+str(size).zfill(3)+ '_0*' + '/scores/skelF_cmiic_1_1_f*t*np*r5.csv'
-    # bmiic_fscore_str = 'size_'+str(size).zfill(3)+'/r08/scores/skelF_cmiic_1_1_f*t*np*r5.csv'
+    # bmiic_fscore_str = 'size_'+str(size).zfill(3) + '_0*' +'/r08/scores/skelF_cmiic_1_1_f*t*np*r5.csv'
     bmiic_hamming_str = 'size_'+str(size).zfill(3)+ '_0*' + '/scores/hamming_cmiic_1_1_f*t*np*r5.csv'
-    # bmiic_hamming_str = 'size_'+str(size).zfill(3)+'/r08/scores/hamming_cmiic_1_1_f*t*np*r5.csv'
+    # bmiic_hamming_str = 'size_'+str(size).zfill(3) + '_0*' +'/r08/scores/hamming_cmiic_1_1_f*t*np*r5.csv'
     bmiic_time_files = sorted(results_dir.joinpath(distribution).glob(bmiic_time_str))
     bmiic_fscore_file = sorted(results_dir.joinpath(distribution).glob(bmiic_fscore_str))
     bmiic_hamming_file = sorted(results_dir.joinpath(distribution).glob(bmiic_hamming_str))
-    results_bmiic_time_mean = []
-    results_bmiic_time_std = []
+
+    results_bmiic_time = []
     for f in bmiic_time_files:
-        results_bmiic_time_mean.append(pd.read_csv(f, delimiter=',', index_col=0, header=0))
-    bmiic_time_mean_df = pd.DataFrame()
-    for r in results_bmiic_time_mean:
-        bmiic_time_mean_df = pd.concat([bmiic_time_mean_df, r], axis=1, sort=False)
-    bmiic_time_std_df = pd.DataFrame()
-    for r in results_bmiic_time_std:
-        bmiic_time_std_df = pd.concat([bmiic_time_std_df, r], axis=1, sort=False)
-    mean = bmiic_time_mean_df.mean(axis=1)
-    std = bmiic_time_std_df.std(axis=1)
+        results_bmiic_time.append(pd.read_csv(f, delimiter=',', index_col=0, header=0))
+    bmiic_time_df = pd.DataFrame()
+    for r in results_bmiic_time:
+        bmiic_time_df = pd.concat([bmiic_time_df, r], axis=1, sort=False)
+    mean = bmiic_time_df.mean(axis=1)
+    std = bmiic_time_df.std(axis=1)
     bmiic_time_mean = pd.concat([bmiic_time_mean, mean], axis=1, sort=False)
     bmiic_time_std = pd.concat([bmiic_time_std, std], axis=1, sort=False)
 
@@ -276,8 +294,9 @@ for size in sizes:
     bmiic_fscore_std_df = pd.DataFrame()
     for r in results_bmiic_fscore_std:
         bmiic_fscore_std_df = pd.concat([bmiic_fscore_std_df, r], axis=1, sort=False)
-    mean = bmiic_fscore_mean_df.mean(axis=1)
-    std = bmiic_fscore_std_df.std(axis=1)
+    mean = bmiic_fscore_mean_df.apply(lambda x:combined_mean(x, np.full(len(x), 5)),
+                                    axis=1)
+    std = combined_std_df(bmiic_fscore_mean_df, bmiic_fscore_std_df**2)
     bmiic_fscore_mean = pd.concat([bmiic_fscore_mean, mean], axis=1, sort=False)
     bmiic_fscore_std = pd.concat([bmiic_fscore_std, std], axis=1, sort=False)
 
@@ -293,11 +312,12 @@ for size in sizes:
     bmiic_hamming_std_df = pd.DataFrame()
     for r in results_bmiic_hamming_std:
         bmiic_hamming_std_df = pd.concat([bmiic_hamming_std_df, r], axis=1, sort=False)
-    mean = bmiic_hamming_mean_df.mean(axis=1)
-    std = bmiic_hamming_std_df.std(axis=1)
+    mean = bmiic_hamming_mean_df.apply(lambda x:combined_mean(x, np.full(len(x), 5)),
+                                    axis=1)
+    std = combined_std_df(bmiic_hamming_mean_df, bmiic_hamming_std_df**2)
     bmiic_hamming_mean = pd.concat([bmiic_hamming_mean, mean], axis=1, sort=False)
     bmiic_hamming_std = pd.concat([bmiic_hamming_std, std], axis=1, sort=False)
-    print("cpc fscore", cpc_fscore_mean)
+    print("cpc fscore", cpc_fscore_std)
 
 
 cpc_time_mean.columns = sizes
@@ -401,8 +421,8 @@ fig_directory = Path("../figures/")
     
 fig, ax = plt.subplots()
 
-ax.set_xlabel('Number of nodes')
-ax.set_ylabel('Time (s)')
+# ax.set_xlabel('Number of nodes')
+# ax.set_ylabel('Time (s)')
 
 #ax.set_title(fig_title)
 
@@ -410,36 +430,48 @@ ax.set_ylabel('Time (s)')
 # ax.set_xlim([start_size, end_size])
 # #ax.set_ylim(0.,3.)
 
-loglog = False
+def myLogFormat(y,pos):
+    # Find the number of decimal places required
+    decimalplaces = int(np.maximum(-np.log10(y),0))     # =0 for numbers >=1
+    # Insert that number into a format string
+    formatstring = '{{:.{:1d}f}}'.format(decimalplaces)
+    # Return the formatted tick label
+    return formatstring.format(y)
+
+loglog = True
 size = 10000
-cpc_time_mean[size].plot(linestyle="-.",linewidth=1.25,color="green", label='cpc', ax=ax, loglog=loglog)
-cbic_time_mean[size].plot(linestyle="--",linewidth=1.25,color="orange", label='cbic', ax=ax, loglog=loglog)
-gmiic_time_mean[size].plot(linestyle="--",linewidth=1.25,color="red", label='g-miic', ax=ax, loglog=loglog)
-bmiic_time_mean[size].plot(linestyle="--",linewidth=1.25,color="blue", label='b-miic', ax=ax, loglog=loglog)
+cpc_time_mean[size].plot(yerr=cpc_time_std[size], capsize=2, elinewidth=1.25, linestyle="-.",linewidth=1.25,color="maroon", label='cpc', ax=ax, loglog=loglog)
+cbic_time_mean[size].plot(yerr=cbic_time_std[size], capsize=2, elinewidth=1.25, linestyle=(0, (1,1)),linewidth=1.25,color="olivedrab", label='cbic', ax=ax, loglog=loglog)
+gmiic_time_mean[size].plot(yerr=gmiic_time_std[size], capsize=2, elinewidth=1.25, linestyle="--",linewidth=1.25,color="goldenrod", label='g-miic', ax=ax, loglog=loglog)
+bmiic_time_mean[size].plot(yerr=bmiic_time_std[size], capsize=2, elinewidth=1.25, linestyle="-",linewidth=1.25,color="royalblue", label='b-miic', ax=ax, loglog=loglog)
+ax.set_xscale('log', basex=2)
+ax.set_yscale('log')
+ax.set_xlim([sizes[0], sizes[-1]])
+for axis in [ax.xaxis]:
+    axis.set_major_formatter(ticker.FuncFormatter(myLogFormat))
+# ax.set_ylim(0.,3.)
 ax.legend()
 
-plt.savefig(fig_directory.joinpath("dimensional_complexity_02.pdf"), transparent=True)
+plt.savefig(fig_directory.joinpath("dimensional_complexity.pdf"), transparent=True)
 print("Saving figure in ", fig_directory.joinpath("dimensional_complexity.pdf"))
 
 
+loglog = False
 fig_directory = Path("../figures/")
     
 fig, ax = plt.subplots()
 
-ax.set_xlabel('Number of nodes')
-ax.set_ylabel('F-score')
+# ax.set_xlabel('Number of nodes')
+# ax.set_ylabel('F-score')
 
-cpc_fscore_mean[size].plot(linestyle="-.",linewidth=1.25,color="green", label='cpc', ax=ax, loglog=loglog)
-print("FScore cpc", cpc_fscore_std)
-cbic_fscore_mean[size].plot(linestyle="--",linewidth=1.25,color="orange", label='cbic', ax=ax, loglog=loglog)
-print("FScore cbic", cbic_fscore_std)
-gmiic_fscore_mean[size].plot(linestyle="--",linewidth=1.25,color="red", label='g-miic', ax=ax, loglog=loglog)
-print("FScore gmiic", gmiic_fscore_std)
-bmiic_fscore_mean[size].plot(linestyle="--",linewidth=1.25,color="blue", label='b-miic', ax=ax, loglog=loglog)
-print("FScore bmiic", bmiic_fscore_std)
+cpc_fscore_mean[size].plot(yerr=cpc_fscore_std[size], capsize=2, elinewidth=1.25, linestyle="-.",linewidth=1.25,color="maroon", label='cpc', ax=ax, loglog=loglog)
+cbic_fscore_mean[size].plot(yerr=cbic_fscore_std[size], capsize=2, elinewidth=1.25, linestyle=(0, (1,1)),linewidth=1.25,color="olivedrab", label='cbic', ax=ax, loglog=loglog)
+gmiic_fscore_mean[size].plot(yerr=gmiic_fscore_std[size], capsize=2, elinewidth=1.25, linestyle="--",linewidth=1.25,color="goldenrod", label='g-miic', ax=ax, loglog=loglog)
+bmiic_fscore_mean[size].plot(yerr=bmiic_fscore_std[size], capsize=2, elinewidth=1.25, linestyle="-",linewidth=1.25,color="royalblue", label='b-miic', ax=ax, loglog=loglog)
+ax.set_xlim([sizes[0], sizes[-1]])
 ax.legend()
 
-plt.savefig(fig_directory.joinpath("fscore_dimensional_complexity_02.pdf"), transparent=True)
+plt.savefig(fig_directory.joinpath("fscore_dimensional_complexity.pdf"), transparent=True)
 print("Saving figure in ", fig_directory.joinpath("fscore_dimensional_complexity.pdf"))
 
 
@@ -447,14 +479,15 @@ fig_directory = Path("../figures/")
     
 fig, ax = plt.subplots()
 
-ax.set_xlabel('Number of nodes')
-ax.set_ylabel('SHD')
+# ax.set_xlabel('Number of nodes')
+# ax.set_ylabel('SHD')
 
-cpc_hamming_mean[size].plot(linestyle="-.",linewidth=1.25,color="green", label='cpc', ax=ax, loglog=loglog)
-cbic_hamming_mean[size].plot(linestyle="--",linewidth=1.25,color="orange", label='cbic', ax=ax, loglog=loglog)
-gmiic_hamming_mean[size].plot(linestyle="--",linewidth=1.25,color="red", label='g-miic', ax=ax, loglog=loglog)
-bmiic_hamming_mean[size].plot(linestyle="--",linewidth=1.25,color="blue", label='b-miic', ax=ax, loglog=loglog)
+cpc_hamming_mean[size].plot(yerr=cpc_hamming_std[size], capsize=2, elinewidth=1.25, linestyle="-.",linewidth=1.25,color="maroon", label='cpc', ax=ax, loglog=loglog)
+cbic_hamming_mean[size].plot(yerr=cbic_hamming_std[size], capsize=2, elinewidth=1.25, linestyle=(0, (1, 1)),linewidth=1.25,color="olivedrab", label='cbic', ax=ax, loglog=loglog)
+gmiic_hamming_mean[size].plot(yerr=gmiic_hamming_std[size], capsize=2, elinewidth=1.25, linestyle="--",linewidth=1.25,color="goldenrod", label='g-miic', ax=ax, loglog=loglog)
+bmiic_hamming_mean[size].plot(yerr=bmiic_hamming_std[size], capsize=2, elinewidth=1.25, linestyle="-",linewidth=1.25,color="royalblue", label='b-miic', ax=ax, loglog=loglog)
+ax.set_xlim([sizes[0], sizes[-1]])
 ax.legend()
 
-plt.savefig(fig_directory.joinpath("hamming_dimensional_complexity_02.pdf"), transparent=True)
+plt.savefig(fig_directory.joinpath("hamming_dimensional_complexity.pdf"), transparent=True)
 print("Saving figure in ", fig_directory.joinpath("hamming_dimensional_complexity.pdf"))
