@@ -38,53 +38,53 @@ def get_domain(left, right):
         a = a + 1
     return domain
 
-# distributions = ['gaussian', 'student', 'dirichlet']
-distributions = ['gaussian']
-# structures = ['asia', 'alarm']
+distributions = ['gaussian', 'student', 'dirichlet']
+# distributions = ['gaussian']
+structures = ['asia', 'alarm']
 
-structures = os.listdir("../data/structures/generated")
-structures.sort()
-structures = [structure.split('.')[0] for structure in structures]
-print(structures)
+# structures = os.listdir("../data/structures/generated")
+# structures.sort()
+# structures = [structure.split('.')[0] for structure in structures]
+# print(structures)
 
-# size_min = {'asia':100, 'alarm':100}
-size_min = {structure:2300 for structure in structures}
-# size_max = {'asia':10000, 'alarm':15000}
-size_max = {structure:10000 for structure in structures}
-# n_points = {'asia':10, 'alarm': 15}
-n_points = {structure:2 for structure in structures}
-# n_restart = {'asia': 10, 'alarm':5}
-n_restart = {structure:5 for structure in structures}
-# xlim = {'asia':4000, 'alarm':6000}
-xlim = {structure:50 for structure in structures}
-# ylim = {'asia': 15, 'alarm':60}
-ylim = {structure:50 for structure in structures}
+size_min = {'asia':100, 'alarm':100}
+# size_min = {structure:2300 for structure in structures}
+size_max = {'asia':10000, 'alarm':15000}
+# size_max = {structure:10000 for structure in structures}
+n_points = {'asia':10, 'alarm': 15}
+# n_points = {structure:2 for structure in structures}
+n_restart = {'asia': 10, 'alarm':5}
+# n_restart = {structure:5 for structure in structures}
+xlim = {'asia':4000, 'alarm':6000}
+# xlim = {structure:50 for structure in structures}
+ylim = {'asia': 15, 'alarm':60}
+# ylim = {structure:50 for structure in structures}
 
 correlations = np.round(np.linspace(0.8, 0.8, 1), decimals=1)
 
 cmiic_gaussian = Pipeline('cmiic',
                           cmode=cmi.CModeTypes_Gaussian,
                           kmode=cmi.KModeTypes_Naive)
-cmiic_gaussian.setStructurePrefix("data/structures/generated/")
+# cmiic_gaussian.setStructurePrefix("data/structures/generated/")
 
 cmiic_bernstein = Pipeline('cmiic',
                            cmode=cmi.CModeTypes_Bernstein,
                            kmode=cmi.KModeTypes_Naive)
-cmiic_bernstein.setStructurePrefix("data/structures/generated/")
+# cmiic_bernstein.setStructurePrefix("data/structures/generated/")
 
 cpc = Pipeline('cpc', binNumber=5, alpha=0.05)
-cpc.setStructurePrefix("data/structures/generated/")
+# cpc.setStructurePrefix("data/structures/generated/")
 
 cbic_gaussian = Pipeline('elidan', max_parents=4, hc_restart=5,
                          cmode=cmi.CModeTypes_Gaussian)
-cbic_gaussian.setStructurePrefix("data/structures/generated/")
+# cbic_gaussian.setStructurePrefix("data/structures/generated/")
 
 # cbic_bernstein = Pipeline('elidan', max_parents=4, hc_restart=5,
                           # cmode=cmi.CModeTypes_Bernstein)
 
 
 plot_style_bernstein = {'linewidth':2.,
-                        'linestyle':'-.',
+                        'linestyle':'-',
                         'color':'royalblue',
                         'label':'b-miic'}
 
@@ -94,14 +94,14 @@ plot_style_gaussian = {'linewidth':2.,
                        'label':'g-miic'}
 
 plot_style_cpc = {'linewidth':2.,
-                  'linestyle':':',
+                  'linestyle':'-.',
                   'color':'maroon',
                   'label':'cpc'}
 
 plot_style_cbic_gaussian = {'linewidth':2.,
-                            'linestyle':'--',
+                            'linestyle':(0, (1,1)),
                             'color':'olivedrab',
-                            'label':'g-cbic'}
+                            'label':'cbic'}
 
 # plot_style_cbic_bernstein = {'linewidth':2.,
                              # 'linestyle':'-.',
