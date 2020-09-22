@@ -1,0 +1,10 @@
+digraph {
+    asia->tub
+    bronc->dysp
+    either->xray
+    either->dysp
+    tub->either
+    smoke->lung
+    smoke->bronc
+    lung->either
+}
