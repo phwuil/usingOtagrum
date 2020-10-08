@@ -236,10 +236,10 @@ if __name__ == "__main__":
     data_ref = ot.Sample.ImportFromTextFile(file_name, ";")
     data_ref = data_ref.getMarginal(range(12))
     # data_ref = data_ref.getMarginal([2, 3, 4])
-    data_ref = (data_ref.rank() + 0.5) / data_ref.getSize()
+    # data_ref = (data_ref.rank() + 0.5) / data_ref.getSize()
 
     # sizes = [10000, 9000, 8000, 7000, 6000, 5000, 4000, 3000, 2000, 1000]
-    sizes = [10000]
+    sizes = [20000]
     # sizes = np.arange(8000, 9000, 100, dtype=int)
 
     # ttest_values = {}

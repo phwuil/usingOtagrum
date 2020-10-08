@@ -1,4 +1,5 @@
 import openturns as ot
+from time import time
 
 class StationaryPressure(ot.OpenTURNSPythonFunction):
     '''
