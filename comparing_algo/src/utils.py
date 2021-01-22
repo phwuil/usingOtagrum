@@ -7,7 +7,6 @@ import numpy as np
 import pyAgrum as gum
 import os
 import os.path as path
-import elidan.hill_climbing as hc
 import graph_utils as gu
 
 
@@ -79,7 +78,8 @@ def learning(sample, method, parameters):
     elif method == "elidan":
         #print(sample.getDescription())
         max_parents, n_restart_hc = parameters
-        copula, dag = hc.hill_climbing(sample, max_parents, n_restart_hc)[0:2]
+        # copula, dag = hc.hill_climbing(sample, max_parents, n_restart_hc)[0:2]
+        # copula, dag = hc.hill_climbing(sample, max_parents, n_restart_hc)[0:2]
         #bn = dag_to_bn(dag, Tstruct.names())
         bn = gu.dag_to_bn(dag, sample.getDescription())
         
