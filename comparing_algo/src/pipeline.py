@@ -13,7 +13,6 @@ import otagrum as otagr
 import numpy as np
 import os
 from pathlib import Path
-import elidan.hill_climbing as hc
 import data_generation as dg
 import utils as ut
 import graph_utils as gu
