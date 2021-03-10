@@ -474,7 +474,8 @@ class Pipeline:
         mean, std = res[1], res[2]
 
         alpha_t = 0.4
-        ax.errorbar(sizes, mean, std, capsize=2, elinewidth=1.25, **kwargs)
+        # ax.errorbar(sizes, mean, std, capsize=2, elinewidth=1.25, **kwargs)
+        ax.errorbar(sizes, mean, std, capsize=4, elinewidth=2.5, **kwargs)
         if error == True:
             plotting.plot_error(sizes, mean, std, alpha_t, ax=ax, color=kwargs['color'])
         
@@ -506,6 +507,7 @@ class Pipeline:
         # mean, std = res[1], res[2]
 
         # mean.plot(ax=ax)
-        ax.errorbar(sizes, mean, std, capsize=2, elinewidth=1.25, **kwargs)
+        # ax.errorbar(sizes, mean, std, capsize=2, elinewidth=1.25, **kwargs)
+        ax.errorbar(sizes, mean, std, capsize=4, elinewidth=2.5, **kwargs)
         
         ax.legend()
