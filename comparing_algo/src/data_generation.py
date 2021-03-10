@@ -4,17 +4,17 @@ import openturns as ot
 import otagrum as otagr
 
 def generate_gaussian_data(ndag, size, r=0.8):
-    order=ndag.getTopologicalOrder()
-    jointDistributions=[]
+    order = ndag.getTopologicalOrder()
+    copulas = []
     for k in range(order.getSize()):
         d = 1 + ndag.getParents(k).getSize()
         R = ot.CorrelationMatrix(d)
         for i in range(d):
             for j in range(i):
                 R[i, j] = r
-        jointDistributions.append(ot.NormalCopula(R))
-    copula = otagr.ContinuousBayesianNetwork(ndag, jointDistributions)
-    sample = copula.getSample(size)
+        copulas.append(ot.NormalCopula(R))
+    cbn = otagr.ContinuousBayesianNetwork(ndag, [ot.Uniform(0., 1.)]*ndag.getSize(), copulas)
+    sample = cbn.getSample(size)
     return sample
 
 def generate_gaussian_copulas(ndag, r=0.8):
