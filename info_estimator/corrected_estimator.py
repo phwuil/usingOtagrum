@@ -8,7 +8,15 @@ import time
 from scipy.special import binom, beta
 from scipy.stats import norm
 import otagrum
-import openturns as ot
+from openturns import (
+        CorrelationMatrix,
+        ComposedDistribution,
+        EmpiricalBernsteinCopula,
+        Normal,
+        RandomGenerator,
+        SpecFunc,
+        Uniform
+)
 from pathlib import Path
 
 # Function definitions
@@ -57,59 +65,60 @@ def load_dict(path, sizes):
         
 def create_normal_distribution(correlation):
     # Generating 2D gaussian data with correlation of 0.8
-    cm = ot.CorrelationMatrix([[          1, correlation],
-                               [correlation,           1]])
-    distribution = ot.Normal([0, 0], [1, 1], cm)
+    cm = CorrelationMatrix([[          1, correlation],
+                            [correlation,           1]])
+    distribution = Normal([0, 0], [1, 1], cm)
     return distribution
 
 def create_uniform_distribution():
-    distribution = ot.ComposedDistribution([ot.Uniform(0., 1.)]*2)
+    distribution = ComposedDistribution([Uniform(0., 1.)]*2)
     return distribution
 
 def compute_results(sizes, restarts, distribution, verbose=False):
-    info_results = {}
+    delta_results = {}
     ttest_results = {}
     for size in sizes:
         start = time.time()
         size = int(size)
         if verbose:
             print("\tSize: {}".format(size))
-        infos = []
+        deltas = []
         ttests = []
         for _ in range(restarts):
             sample = distribution.getSample(size)
+            sample = (sample.rank() + 1) / (sample.getSize() + 2)
+            # sample.exportToCSVFile("sample_for_Regis.csv")
 
             # Computing mutual information using otagrum
-            icomputer = otagrum.CorrectedMutualInformation(sample)
-            icomputer.setKMode(otagrum.CorrectedMutualInformation.KModeTypes_NoCorr)
-            info = icomputer.compute2PtCorrectedInformation(0, 1)
-            print("OTAGRUM: ", info)
+            # icomputer = otagrum.CorrectedMutualInformation(sample)
+            # icomputer.setKMode(otagrum.CorrectedMutualInformation.KModeTypes_NoCorr)
+            # info = icomputer.compute2PtCorrectedInformation(0, 1)
+            # print("\tOTAGRUM: ", info)
 
             # Reproducing compute2PtCorrectedInformation without using otagrum
             K = otagrum.ContinuousTTest_GetK(sample.getSize(), sample.getDimension())
-            bc = ot.EmpiricalBernsteinCopula(sample, K, False)
-            I = bc.computeLogPDF(sample).computeMean()[0]
-            # I = bc.computeLogPDF(bc.getCopulaSample()*(1.0 - SpecFunc.ScalarEpsilon)).computeMean()[0]
-            # I = bc.computeLogPDF(sample*(1.0 - SpecFunc.ScalarEpsilon)).computeMean()[0]
-            # I = -bc.computeEntropy()
-            print("PYTHON: ", I)
+            bc = EmpiricalBernsteinCopula(sample, K, False)
+            # info = bc.computeLogPDF(sample).computeMean()[0]
+            delta = -bc.computeEntropy()
+            # delta = bc.computeLogPDF(bc.getCopulaSample()*
+                                     # (1.0 - SpecFunc.ScalarEpsilon)).computeMean()[0]
 
             # Computing TTest with the obtained info estimator
-            ttest = compute_ttest(info, size, 2)
+            ttest = compute_ttest(delta, size, 2)
 
-            infos.append(info)
+            deltas.append(delta)
             ttests.append(ttest)
 
-        info_results[size] = np.array(infos)
+        delta_results[size] = np.array(deltas)
         ttest_results[size] = np.array(ttests)
         
-        save_dict(info_results, Path('results')/mode/'info'/str(restarts))
+        save_dict(delta_results, Path('results')/mode/'delta'/str(restarts))
         save_dict(ttest_results, Path('results')/mode/'ttest'/str(restarts))
         end = time.time()
         if verbose:
             print("\tElapsed time : {}".format(end - start))
 
-    return info_results, ttest_results
+    return delta_results, ttest_results
 
 def apply_to_dic(dictionary, method):
     new = {}
@@ -119,10 +128,10 @@ def apply_to_dic(dictionary, method):
 
 
 # Main
+RandomGenerator.SetSeed(0)
 mode = 'uniform'
-size_min, size_max = 100, 101
-sizes = np.arange(size_min, size_max, 600)
-print(sizes)
+size_min, size_max = 100, 10101
+sizes = np.arange(size_min, size_max, 500)
 restarts = 5000
 
 dir_prefix = Path('results')/mode
