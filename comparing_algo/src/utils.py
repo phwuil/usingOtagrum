@@ -75,7 +75,7 @@ def learning(sample, method, parameters):
         
         bn = gu.named_dag_to_bn(ndag)
     
-    elif method == "elidan":
+    elif method == "cbic":
         #print(sample.getDescription())
         max_parents, n_restart_hc = parameters
         # copula, dag = hc.hill_climbing(sample, max_parents, n_restart_hc)[0:2]
