@@ -7,12 +7,12 @@ mpl.rc('font', family='serif')
 
 import pandas as pd
 import pyAgrum as gum
-import pyAgrum.lib.notebook as gnb
 import openturns as ot
 import otagrum as otagr
 import numpy as np
 import os
 from pathlib import Path
+import discretize as dsc
 import data_generation as dg
 import utils as ut
 import graph_utils as gu
@@ -225,8 +225,8 @@ class Pipeline:
             raise TypeError("cmiic method takes two arguments ({} given)".format(len(parameters)))
         elif self.method == 'cpc' and not len(parameters) == 2:
             raise TypeError("cpc method takes two arguments ({} given)".format(len(parameters)))
-        elif self.method == 'elidan' and not len(parameters) == 3:
-            raise TypeError("elidan method takes two arguments ({} given)".format(len(parameters)))
+        elif self.method == 'cbic' and not len(parameters) == 3:
+            raise TypeError("cbic method takes two arguments ({} given)".format(len(parameters)))
         else:
             self.parameters = parameters
             
@@ -252,13 +252,24 @@ class Pipeline:
         if self.method == "cpc":
             result_name += '_' + str(self.parameters['binNumber']) + '_' + \
                            str(self.parameters['alpha']).replace('.', '') + '_'
-        elif self.method == "elidan":
+        elif self.method == "cbic":
             result_name += '_' + str(self.parameters['max_parents']) + '_' + \
                            str(self.parameters['hc_restart']) + '_' + \
                            str(self.parameters['cmode']) + '_'
         elif self.method == "cmiic":
             result_name += '_' + str(self.parameters['cmode']) + "_" + \
                            str(self.parameters['kmode']) + '_'
+        elif self.method == "elidan":
+            result_name += '_' + str(self.parameters['max_parents']) + '_' + \
+                           str(self.parameters['hc_restart']) + '_' + \
+                           str(self.parameters['cmode']) + '_'
+        elif self.method == "dmiic":
+            result_name += '_' + str(self.parameters['dis_method']) + '_' + \
+                           str(self.parameters['nbins']) + '_' + \
+                           str(self.parameters['threshold']) + '_'
+        elif self.method == "lgbn":
+            result_name += '_' + str(self.parameters['max_parents']) + '_' + \
+                           str(self.parameters['hc_restart']) + '_' 
         else:
             print("Wrong entry for method argument")
 
@@ -367,7 +378,7 @@ class Pipeline:
                     # bernsteinCopula = ot.EmpiricalBernsteinCopula(sample.getMarginal(indices), K, False)
                 # jointDistributions.append(bernsteinCopula)
     
-        elif self.method == "elidan":
+        elif self.method == "cbic":
             #print(sample.getDescription())
             max_parents = self.parameters['max_parents']
             n_restart_hc = self.parameters['hc_restart']
@@ -391,6 +402,15 @@ class Pipeline:
             ndag = learner.learnDAG()
             end = time.time()
             # bn = gu.named_dag_to_bn(ndag)
+
+        elif self.method == "dmiic":
+            # learner.setBeta(self.kbeta)
+            ndag, start, end = dsc.learnDAG(sample)
+            # bn = gu.named_dag_to_bn(ndag)
+
+        elif self.method == "lgbn":
+            start = time.time()
+            end = time.time()
             
         else:
             print("Wrong entry for method argument !")
