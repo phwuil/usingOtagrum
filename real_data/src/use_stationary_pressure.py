@@ -88,8 +88,8 @@ def CBN_parameter_learning(data, dag):
     print("        Learning the CBN parameters")
     t2 = time()
     ot.ResourceMap.SetAsUnsignedInteger("BernsteinCopulaFactory-kFraction", 2)
-    ot.ResourceMap.SetAsUnsignedInteger("BernsteinCopulaFactory-MaxM", size//2)
-    ot.ResourceMap.SetAsUnsignedInteger("BernsteinCopulaFactory-MinM", size//2)
+    ot.ResourceMap.SetAsUnsignedInteger("BernsteinCopulaFactory-MinM", size//2-2)
+    ot.ResourceMap.SetAsUnsignedInteger("BernsteinCopulaFactory-MaxM", size//2-1)
     cbn = otagrum.ContinuousBayesianNetworkFactory(ot.HistogramFactory(),
                                                    ot.BernsteinCopulaFactory(),
                                                    dag, 0, 0, False).build(data)
@@ -205,7 +205,7 @@ KL_coefficients_ref = ot.Sample.ImportFromTextFile("Standard_coefficients_100000
 print("t=", time() - t0, "s")
 
 # Parameters
-learning_size = 2000
+learning_size = 10000
 sample_size = 200
 
 # Selecting data
@@ -237,8 +237,8 @@ ksg_pressure = generate_pressure("KSG", ksg_sample)
 draw_pressure(graph, ksg_pressure)
 ksg_q1 = ksg_pressure.computeQuantile(0.01)
 
-# for alpha in [0.01, 0.05, 0.1, 0.5]:
-for alpha in [0.05, 0.1, 0.5]:
+for alpha in [0.01, 0.05, 0.1, 0.5]:
+# for alpha in [0.05, 0.1, 0.5]:
     print("alpha = ", alpha)
     graph_cp = copy.copy(graph)
     miic_cbn = MIIC_learning(data, alpha)
